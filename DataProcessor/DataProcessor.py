@@ -1,23 +1,16 @@
 import pandas as pd
 
-file_path = "C:\\nckh\\DataSet\\StudentsPerformance_Updated.xlsx"
+file_path = "C:\\nckh\\DataSet\\StudentsPerformance_Updated.xlsx" // Đường dẫn tới file StudentsPerformance_Updated
+                                                                    //Mỗi người sẽ có đường dẫn khác nhau. CẦN CHÚ Ý!!!
 
 df = pd.read_excel(file_path, sheet_name = "StudentsPerformance", index_col = "studentID")
 xls = pd.ExcelFile(file_path)
-
-# print(xls.sheet_names)
-
-# selected_df = df[['gender', 'math score','reading score', 'writing score']] df là các cột được chọn
 
 columns_to_drop = ['race/ethnicity', 'parental_level_of_education', 'lunch', 'test_preparation_course']
 df_filtered = df.drop(columns=columns_to_drop)
 
 # df[['math_score', 'reading_score', 'writing_score']] /= 10
 
-# with pd.ExcelWriter(file_path, mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
-#     df.to_excel(writer, sheet_name="StudentsPerformance", index=True)  # Chỉ cập nhật sheet này
-    
-    
 # def get_recommendation(score):
 #     if 0 <= score <= 5:
 #         return "Poor"
