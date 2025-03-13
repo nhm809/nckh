@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Phần đăng nhập -->
     <div class="login-container">
         <div class="login-header">
             <img src="anhnen.png" alt="Logo 5ae siêu nhân">
@@ -26,8 +27,12 @@
         </div>
     </div>
 
-    <div class="main-content">
+    <!-- Phần nội dung chính, ban đầu ẩn đi -->
+    <div class="main-content" style="display: none;">
         <h1>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h1>
+
+        <!-- Nút đăng xuất -->
+        <button onclick="logout()">Đăng Xuất</button>
 
         <!-- Phần thêm bằng cấp -->
         <h2>Thêm Bằng Cấp</h2>
@@ -48,11 +53,48 @@
         <textarea id="grades" placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'></textarea>
         <button onclick="recommendCourses()">Lấy Gợi Ý</button>
         <p id="recommendResult"></p>
-        <div id="explanations"></div> <!-- Hiển thị giải thích từ XAI -->
-        <div id="shapExplanation"></div> <!-- Hiển thị giải thích SHAP -->
-        <div id="limeExplanation"></div> <!-- Hiển thị giải thích LIME -->
+        <div id="explanations"></div>
+        <div id="shapExplanation"></div>
+        <div id="limeExplanation"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        function login() {
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            // Giả lập kiểm tra tài khoản (có thể thay thế bằng API thực)
+            if (username === "admin" && password === "123456") {
+                localStorage.setItem("loggedIn", "true"); // Lưu trạng thái đăng nhập
+                showMainContent();
+            } else {
+                document.getElementById("loginError").innerText = "Sai tài khoản hoặc mật khẩu!";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedIn"); // Xóa trạng thái đăng nhập
+            showLoginForm();
+        }
+
+        function showMainContent() {
+            document.querySelector(".login-container").style.display = "none";  // Ẩn form đăng nhập
+            document.querySelector(".main-content").style.display = "block";   // Hiện nội dung chính
+        }
+
+        function showLoginForm() {
+            document.querySelector(".login-container").style.display = "block";  // Hiện form đăng nhập
+            document.querySelector(".main-content").style.display = "none";     // Ẩn nội dung chính
+        }
+
+        // Kiểm tra trạng thái đăng nhập khi tải trang
+        window.onload = function() {
+            if (localStorage.getItem("loggedIn") === "true") {
+                showMainContent();
+            } else {
+                showLoginForm();
+            }
+        }
+    </script>
 </body>
 </html>
