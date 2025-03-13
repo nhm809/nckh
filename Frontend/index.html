@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Đăng Nhập</title>
+    <title>Hệ Thống Quản Lý Hồ Sơ Học Thuật</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-header">
             <img src="anhnen.png" alt="Logo 5ae siêu nhân">
-            <h2></h2>
-            <h3> ĐĂNG NHẬP </h3>
+            <h2>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h2>
+            <h3>ĐĂNG NHẬP</h3>
         </div>
         
         <div class="login-form">
-            <label for="username">StudentID</label>
+            <label for="username">Student ID</label>
             <input type="text" id="username" placeholder="Tài khoản">
 
             <label for="password">Mật khẩu</label>
@@ -24,9 +24,33 @@
             <button onclick="login()">ĐĂNG NHẬP</button>
             <p id="loginError" class="error"></p>
         </div>
+    </div>
 
-        <div class="login-footer">
-         
+    <div class="main-content">
+        <h1>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h1>
+
+        <!-- Phần thêm bằng cấp -->
+        <h2>Thêm Bằng Cấp</h2>
+        <input id="studentID" placeholder="Student ID">
+        <input id="certificateHash" placeholder="Certificate Hash">
+        <button onclick="addCertificate()">Thêm Bằng Cấp</button>
+
+        <!-- Phần xác minh bằng cấp -->
+        <h2>Xác Minh Bằng Cấp</h2>
+        <input id="verifyStudentID" placeholder="Student ID">
+        <input id="verifyHash" placeholder="Certificate Hash">
+        <button onclick="verifyCertificate()">Xác Minh</button>
+        <p id="verifyResult"></p>
+
+        <!-- Phần gợi ý lộ trình học tập -->
+        <h2>Gợi Ý Lộ Trình Học Tập</h2>
+        <input id="recommendStudentID" placeholder="Student ID">
+        <textarea id="grades" placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'></textarea>
+        <button onclick="recommendCourses()">Lấy Gợi Ý</button>
+        <p id="recommendResult"></p>
+        <div id="explanations"></div> <!-- Hiển thị giải thích từ XAI -->
+        <div id="shapExplanation"></div> <!-- Hiển thị giải thích SHAP -->
+        <div id="limeExplanation"></div> <!-- Hiển thị giải thích LIME -->
     </div>
 
     <script src="script.js"></script>
