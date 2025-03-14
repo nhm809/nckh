@@ -13,48 +13,104 @@ app.use(express.json());
 const web3 = new Web3(process.env.BLOCKCHAIN_RPC);
 const contractAddress = process.env.CONTRACT_ADDRESS;
 const contractABI = [
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "studentID",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "certificateHash",
-          "type": "string"
-        }
-      ],
-      "name": "addCertificate",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "studentID",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "certificateHash",
-          "type": "string"
-        }
-      ],
-      "name": "verifyCertificate",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    }
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "studentID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "certificateHash",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "CertificateAdded",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "name": "certificates",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "studentID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "certificateHash",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_studentID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_certificateHash",
+        "type": "string"
+      }
+    ],
+    "name": "addCertificate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_studentID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_certificateHash",
+        "type": "string"
+      }
+    ],
+    "name": "verifyCertificate",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  }
 ];
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
