@@ -7,39 +7,43 @@ async function login() {
         return;
     }
 
-    const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentID, password })
-    });
+    try {
+        const response = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentID, password })
+        });
 
-    const result = await response.json();
-    if (response.ok) {
-        document.querySelector(".login-container").style.display = "none";
-        document.querySelector(".main-content").style.display = "block";
-        document.getElementById("recommendStudentID").value = studentID;
-        
-        if (/^S\d{4}$/.test(studentID)) {
-            fetchStudentGrades(studentID);
+        const result = await response.json();
+
+        if (response.ok) {
+            document.querySelector(".login-container").style.display = "none";
+            document.querySelector(".main-content").style.display = "block";
+            document.getElementById("recommendStudentID").value = studentID;
+            
+            if (/^S\d{4}$/.test(studentID)) {
+                fetchStudentGrades(studentID);
+            }
+        } else {
+            document.getElementById("loginError").innerText = result.message;
         }
-    } else {
-        document.getElementById("loginError").innerText = result.message;
+    } catch (error) {
+        document.getElementById("loginError").innerText = "Lỗi kết nối đến server.";
     }
 }
 
 async function fetchStudentGrades(studentID) {
     try {
         const response = await fetch(`http://localhost:3000/get-grades?studentID=${studentID}`);
-        const result = await response.json();
-
-        if (response.ok) {
-            document.getElementById("grades").value = JSON.stringify(result.grades, null, 2);
-            recommendCourses();
-        } else {
-            alert(result.message);
+        if (!response.ok) {
+            throw new Error("Không thể lấy điểm sinh viên.");
         }
+
+        const result = await response.json();
+        document.getElementById("grades").value = JSON.stringify(result.grades, null, 2);
+        recommendCourses();
     } catch (error) {
-        alert("Lỗi khi lấy điểm sinh viên.");
+        alert(error.message);
     }
 }
 
@@ -62,17 +66,29 @@ async function recommendCourses() {
 
         const result = await response.json();
         document.getElementById("recommendResult").innerText = `Lộ trình học tập: `;
-        document.getElementById("recommendations").innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        
+        let recommendationsDiv = document.getElementById("recommendations");
+        if (!recommendationsDiv) {
+            recommendationsDiv = document.createElement("div");
+            recommendationsDiv.id = "recommendations";
+            document.body.appendChild(recommendationsDiv);
+        }
+        
+        recommendationsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
     } catch (error) {
         alert("Lỗi khi xử lý gợi ý lộ trình học tập.");
     }
 }
 
 function logout() {
+    localStorage.removeItem("loggedIn"); 
     location.reload();
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+
+    document.getElementById("loginBtn").addEventListener("click", login);
+
     function handleEnter(event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -80,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    document.getElementById("username").addEventListener("keydown", handleEnter);
+    document.getElementById("StudentID").addEventListener("keydown", handleEnter);
     document.getElementById("password").addEventListener("keydown", handleEnter);
 });
+

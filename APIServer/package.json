@@ -1,9 +1,13 @@
 {
   "type": "module",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "python-shell": "^5.0.0",
     "web3": "^4.16.0"
+  },
+  "scripts": {
+    "start": "node server.js"
   }
 }

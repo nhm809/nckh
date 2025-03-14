@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    background-image: url('images/anhnen.png'); /* Đường dẫn ảnh nền */
+    /* background-image: url('images/anhnen.png'); Đường dẫn ảnh nền */
     background-size: cover; /* Ảnh phủ toàn bộ màn hình */
     background-position: center;
     background-repeat: no-repeat;

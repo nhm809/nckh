@@ -10,7 +10,7 @@
     <!-- Phần đăng nhập -->
     <div class="login-container">
         <div class="login-header">
-            <img src="image/anhnen.png" alt="Logo 5ae siêu nhân">
+            <img src="images/anhnen.png" alt="Logo 5ae siêu nhân">
             <h2>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h2>
             <h3>ĐĂNG NHẬP</h3>
         </div>
@@ -22,12 +22,11 @@
             <label for="password">Mật khẩu</label>
             <input type="password" id="password" placeholder="Mật khẩu">
 
-            <button onclick="login()">ĐĂNG NHẬP</button>
+            <button id="loginBtn">ĐĂNG NHẬP</button>
             <p id="loginError" class="error"></p>
         </div>
     </div>
 
-   
     <div class="main-content" style="display: none;">
         <h1>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h1>
 
@@ -53,13 +52,14 @@
         <textarea id="grades" placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'></textarea>
         <button onclick="recommendCourses()">Lấy Gợi Ý</button>
         <p id="recommendResult"></p>
+        <div id="recommendations"></div> <!-- ✅ Thêm phần này để tránh lỗi -->
         <div id="explanations"></div>
         <div id="shapExplanation"></div>
         <div id="limeExplanation"></div>
     </div>
 
-    <script>  
-    function logout() {
+    <script>
+        function logout() {
             localStorage.removeItem("loggedIn"); // Xóa trạng thái đăng nhập
             showLoginForm();
         }
@@ -83,5 +83,6 @@
             }
         }
     </script>
+    <script src="script.js" defer></script> <!-- ✅ Thêm defer -->
 </body>
 </html>

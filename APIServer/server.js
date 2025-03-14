@@ -2,12 +2,16 @@ import express from 'express';
 import Web3 from 'web3';
 import { PythonShell } from 'python-shell';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
 
 const app = express();
 app.use(express.json());
+
+app.use(cors({ origin: "http://127.0.0.1:5500" }));
+
 
 // Kết nối với Ethereum Testnet hoặc Ganache
 const web3 = new Web3(process.env.BLOCKCHAIN_RPC);
@@ -112,6 +116,28 @@ const contractABI = [
     "constant": true
   }
 ];
+
+
+// Danh sách tài khoản giả lập (Có thể thay bằng DB sau này)
+const users = [
+  { studentID: "S0001", password: "123" },
+  { studentID: "admin", password: "123" }
+];
+
+// API xử lý đăng nhập
+app.post("/login", (req, res) => {
+  const { studentID, password } = req.body;
+
+  const user = users.find(u => u.studentID === studentID && u.password === password);
+  if (user) {
+      res.json({ message: "Đăng nhập thành công" });
+  } else {
+      res.status(401).json({ message: "Sai tài khoản hoặc mật khẩu" });
+  }
+});
+
+
+
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
 // API thêm bằng cấp vào Blockchain
