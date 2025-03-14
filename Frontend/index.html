@@ -58,21 +58,8 @@
         <div id="limeExplanation"></div>
     </div>
 
-    <script>
-        function login() {
-            let username = document.getElementById("username").value;
-            let password = document.getElementById("password").value;
-
-            // Giả lập kiểm tra tài khoản (có thể thay thế bằng API thực)
-            if (username === "admin" && password === "123456") {
-                localStorage.setItem("loggedIn", "true"); // Lưu trạng thái đăng nhập
-                showMainContent();
-            } else {
-                document.getElementById("loginError").innerText = "Sai tài khoản hoặc mật khẩu!";
-            }
-        }
-
-        function logout() {
+    <script>  
+    function logout() {
             localStorage.removeItem("loggedIn"); // Xóa trạng thái đăng nhập
             showLoginForm();
         }
