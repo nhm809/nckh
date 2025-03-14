@@ -1,4 +1,4 @@
-//scrip.js
+// script.js
 async function login() {
     const studentID = document.getElementById("loginStudentID").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -20,33 +20,8 @@ async function login() {
         document.getElementById("loginForm").style.display = "none";
         document.getElementById("displayStudentID").innerText = studentID;
         document.getElementById("mainContent").style.display = "block";
-
-        // Nếu là sinh viên, lấy điểm từ CSV và gợi ý lộ trình
-        if (/^S\d{4}$/.test(studentID)) {
-            fetchStudentGrades(studentID);
-        }
     } else {
         document.getElementById("loginError").innerText = result.message;
-    }
-}
-
-// Hàm lấy điểm từ CSV và tự động gợi ý lộ trình
-async function fetchStudentGrades(studentID) {
-    try {
-        const response = await fetch(`http://localhost:3000/get-grades?studentID=${studentID}`);
-        const result = await response.json();
-
-        if (response.ok) {
-            // Hiển thị điểm lên giao diện
-            document.getElementById("grades").value = JSON.stringify(result.grades, null, 2);
-
-            // Tự động gợi ý lộ trình học tập
-            recommendCourses();
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        alert("Lỗi khi lấy điểm sinh viên.");
     }
 }
 
@@ -65,6 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
     studentIDInput.addEventListener("keydown", handleEnter);
     passwordInput.addEventListener("keydown", handleEnter);
 });
+
 
 // Thêm bằng cấp vào Blockchain
 async function addCertificate() {
