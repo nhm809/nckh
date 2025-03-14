@@ -61,12 +61,8 @@ async function recommendCourses() {
         });
 
         const result = await response.json();
-        document.getElementById("recommendResult").innerText = `Khóa học đề xuất: ${result.recommendedCourses.join(", ")}`;
-        document.getElementById("recommendations").innerHTML = `
-            <h3>Recommended Courses:</h3>
-            <p><strong>Courses:</strong> ${result.recommendedCourses.join(", ")}</p>
-            <h3>Explanation:</h3>
-            <ul>${result.explanations.map(exp => `<li>${exp}</li>`).join('')}</ul>`;
+        document.getElementById("recommendResult").innerText = `Lộ trình học tập: `;
+        document.getElementById("recommendations").innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
     } catch (error) {
         alert("Lỗi khi xử lý gợi ý lộ trình học tập.");
     }
