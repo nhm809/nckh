@@ -1,5 +1,4 @@
 // script.js
-
 async function login() {
     const studentID = document.getElementById("loginStudentID").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -25,6 +24,23 @@ async function login() {
         document.getElementById("loginError").innerText = result.message;
     }
 }
+
+// Kích hoạt đăng nhập khi nhấn Enter
+document.addEventListener("DOMContentLoaded", function () {
+    const studentIDInput = document.getElementById("loginStudentID");
+    const passwordInput = document.getElementById("password");
+
+    function handleEnter(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            login();
+        }
+    }
+
+    studentIDInput.addEventListener("keydown", handleEnter);
+    passwordInput.addEventListener("keydown", handleEnter);
+});
+
 
 // Thêm bằng cấp vào Blockchain
 async function addCertificate() {
