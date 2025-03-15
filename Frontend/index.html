@@ -35,13 +35,13 @@
 
         <!-- Phần thêm bằng cấp -->
         <h2>Thêm Bằng Cấp</h2>
-        <input id="studentID" placeholder="Student ID">
+        <input placeholder="Student ID">
         <input id="certificateHash" placeholder="Certificate Hash">
         <button onclick="addCertificate()">Thêm Bằng Cấp</button>
 
         <!-- Phần xác minh bằng cấp -->
         <h2>Xác Minh Bằng Cấp</h2>
-        <input id="verifyStudentID" placeholder="Student ID">
+        <input placeholder="Student ID">
         <input id="verifyHash" placeholder="Certificate Hash">
         <button onclick="verifyCertificate()">Xác Minh</button>
         <p id="verifyResult"></p>
@@ -49,7 +49,6 @@
         <!-- Phần gợi ý lộ trình học tập -->
         <h2>Gợi Ý Lộ Trình Học Tập</h2>
         <input id="recommendStudentID" placeholder="Student ID">
-        <!-- <input type="text" id="grades" value='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'> -->
         <textarea id="grades" placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'></textarea>
         <button onclick="recommendCourses()">Lấy Gợi Ý</button>
         <p id="recommendResult"></p>

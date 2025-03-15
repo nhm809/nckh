@@ -58,8 +58,8 @@ async function recommendCourses() {
     const studentID = document.getElementById("studentID").value;
     const grades = document.getElementById("grades").value;
 
-    if (!studentID || !grades) {
-        alert("Vui lòng nhập Student ID và điểm số.");
+    if (!grades) {
+        alert("Không có dữ liệu điểm số để gợi ý.");
         return;
     }
 

@@ -126,7 +126,9 @@ const readGradesFromCSV = (studentID) => {
           .on("data", (row) => {
               if (row.studentID === studentID) {
                   studentData = {
-                      Math: parseFloat(row.math_score), Reading: parseFloat(row.reading_score), Writing: parseFloat(row.writing_score),
+                      Math: parseFloat(row.math_score), 
+                      Reading: parseFloat(row.reading_score), 
+                      Writing: parseFloat(row.writing_score),
                   };
               }
           })
@@ -215,7 +217,7 @@ app.post('/recommend-courses', (req, res) => {
       pythonOptions: ['-u'],
       args: [JSON.stringify({ studentID, grades })]
   };
-  PythonShell.run('../AI&XAI/analyze.py', options, (err, results) => {
+  PythonShell.run('../nckh/AI_XAI/analyze.py', options, (err, results) => {
       if (err) return res.status(500).send(err.message);
       // Trả về kết quả từ Python script
       res.status(200).json(JSON.parse(results[0]));
