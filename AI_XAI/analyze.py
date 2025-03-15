@@ -25,6 +25,8 @@ grades_df = pd.DataFrame([list(grades.values())], columns=list(grades.keys()))
 
 # Hàm dự đoán xác suất cụm cho LIME
 def predict_probabilities(model, X):
+    if model is None:
+        return np.array([[0.5, 0.5]])  # Tránh lỗi khi model chưa được khởi tạo
     clusters = model.predict(X)
     probs = np.zeros((X.shape[0], model.n_clusters))
     for i, cluster in enumerate(clusters):
@@ -33,14 +35,16 @@ def predict_probabilities(model, X):
 
 # Hàm phân tích điểm số và đưa ra khuyến nghị
 def recommend_courses(grades_df):
+    if grades_df.shape[0] == 1:
+        # Không dùng KMeans khi chỉ có 1 sinh viên
+        recommendations = [c for c in courses.keys() if c not in grades]
+        return recommendations[:2], None  
+
     n_clusters = min(2, len(grades_df))
-    kmeans = KMeans(n_clusters, random_state=0, n_init=10).fit(grades_df)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10).fit(grades_df)
     cluster = kmeans.labels_[0]
 
-    recommendations = []
-    for subject, score in grades.items():
-        if score < 7:
-            recommendations.append(subject)
+    recommendations = [subject for subject, score in grades.items() if score < 7]
 
     if not recommendations:
         available_courses = [c for c in courses.keys() if c not in grades.keys()]
@@ -51,29 +55,32 @@ def recommend_courses(grades_df):
 # Hàm giải thích bằng SHAP và LIME
 def explain_recommendations(grades_df, recommendations, kmeans_model):
     explanations = []
+    shap_explanation = []
+    lime_explanation = []
+    
     feature_names = list(grades_df.columns)
     X = grades_df.values
 
-    # SHAP
-    background = np.median(X, axis=0).reshape(1, -1)
-    explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
-    shap_values = explainer_shap.shap_values(X)
+    if kmeans_model is not None:
+        # SHAP
+        background = np.median(X, axis=0).reshape(1, -1)
+        explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
+        shap_values = explainer_shap.shap_values(X)
 
-    shap_explanation = []
-    for i, feature in enumerate(feature_names):
-        shap_value = shap_values[0][i]
-        if shap_value > 0:
-            shap_explanation.append(f"{feature} (điểm số: {grades[feature]}) có ảnh hưởng lớn đến quyết định (SHAP value: {shap_value:.2f})")
+        for i, feature in enumerate(feature_names):
+            shap_value = shap_values[0][i]
+            if shap_value > 0:
+                shap_explanation.append(f"{feature} (điểm số: {grades[feature]}) có ảnh hưởng lớn (SHAP value: {shap_value:.2f})")
 
-    # LIME
-    explainer_lime = lime.lime_tabular.LimeTabularExplainer(
-        training_data=X,
-        feature_names=feature_names,
-        mode='regression',  
-        random_state=0
-    )
-    lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=3)
-    lime_explanation = lime_exp.as_list()
+        # LIME
+        explainer_lime = lime.lime_tabular.LimeTabularExplainer(
+            training_data=X,
+            feature_names=feature_names,
+            mode='classification',
+            random_state=0
+        )
+        lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=3)
+        lime_explanation = lime_exp.as_list()
 
     for rec in recommendations:
         if rec in grades:
