@@ -72,20 +72,19 @@ async function recommendCourses() {
         });
 
         const result = await response.json();
-        document.getElementById("recommendResult").innerText = `Lộ trình học tập: `;
-        
-        let recommendationsDiv = document.getElementById("recommendations");
-        if (!recommendationsDiv) {
-            recommendationsDiv = document.createElement("div");
-            recommendationsDiv.id = "recommendations";
-            document.body.appendChild(recommendationsDiv);
-        }
-        
-        recommendationsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+
+        // Gán kết quả vào các thẻ HTML
+        document.getElementById("recommendations").innerHTML = `<b>Gợi ý khóa học:</b> ${result.recommendedCourses.join(", ")}`;
+        document.getElementById("explanations").innerHTML = `<b>Giải thích:</b> ${result.explanations}`;
+        document.getElementById("shapExplanation").innerHTML = `<b>SHAP:</b> ${JSON.stringify(result.shapExplanation, null, 2)}`;
+        document.getElementById("limeExplanation").innerHTML = `<b>LIME:</b> ${result.limeExplanation.join("<br>")}`;
+
     } catch (error) {
         alert("Lỗi khi xử lý gợi ý lộ trình học tập.");
+        console.error(error);
     }
 }
+
 
 function logout() {
     localStorage.removeItem("loggedIn"); 

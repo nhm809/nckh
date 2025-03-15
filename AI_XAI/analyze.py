@@ -33,7 +33,8 @@ def predict_probabilities(model, X):
 
 # Hàm phân tích điểm số và đưa ra khuyến nghị
 def recommend_courses(grades_df):
-    kmeans = KMeans(n_clusters=2, random_state=0, n_init=10).fit(grades_df)
+    n_clusters = min(2, len(grades_df))
+    kmeans = KMeans(n_clusters, random_state=0, n_init=10).fit(grades_df)
     cluster = kmeans.labels_[0]
 
     recommendations = []
