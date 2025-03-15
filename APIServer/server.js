@@ -209,55 +209,20 @@ app.get('/verify-certificate', async (req, res) => {
 });
 
 // API để gợi ý lộ trình học tập từ AI và XAI
-app.post('/recommend-courses', async (req, res) => {
-    try {
-        const { studentID, grades } = req.body;
-
-        // Kiểm tra dữ liệu đầu vào
-        if (!studentID || !grades || typeof grades !== 'object') {
-            return res.status(400).json({ error: "Dữ liệu đầu vào không hợp lệ!" });
-        }
-
-        // Cấu hình PythonShell để gọi script analyze.py
-        const options = {
-            mode: 'text',
-            pythonOptions: ['-u'],
-            args: [JSON.stringify({ studentID, grades })]
-        };
-
-        PythonShell.run('./AI_XAI/analyze.py', options, (err, results) => {
-            try {
-                if (err) {
-                    console.error("Python Script Error:", err);
-                    return res.status(500).json({ error: "Lỗi từ Python script", details: err.message });
-                }
-
-                if (!results || results.length === 0) {
-                    return res.status(500).json({ error: "Không nhận được kết quả từ Python script" });
-                }
-
-                // Kiểm tra kết quả trả về có đúng định dạng JSON không
-                let parsedResult;
-                try {
-                    parsedResult = JSON.parse(results[0]);
-                } catch (jsonErr) {
-                    console.error("JSON Parse Error:", jsonErr);
-                    return res.status(500).json({ error: "Lỗi phân tích JSON từ Python" });
-                }
-
-                res.status(200).json(parsedResult);
-            } catch (innerErr) {
-                console.error("Unhandled Error:", innerErr);
-                res.status(500).json({ error: "Lỗi không xác định trong xử lý kết quả" });
-            }
-        });
-
-    } catch (error) {
-        console.error("Server Error:", error);
-        res.status(500).json({ error: "Lỗi từ server", details: error.message });
-    }
+app.post('/recommend-courses', (req, res) => {
+  const { studentID, grades } = req.body;
+  // Cấu hình PythonShell để gọi script analyze.py
+  const options = {
+      mode: 'text',
+      pythonOptions: ['-u'],
+      args: [JSON.stringify({ studentID, grades })]
+  };
+  PythonShell.run('./AI_XAI/analyze.py', options, (err, results) => {
+      if (err) return res.status(500).send(err.message);
+      // Trả về kết quả từ Python script
+      res.status(200).json(JSON.parse(results[0]));
+  });
 });
-
 
 // Khởi động server
 const PORT = process.env.PORT || 3000;

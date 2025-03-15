@@ -2,7 +2,6 @@ import sys
 import json
 import pandas as pd
 import numpy as np
-from sklearn.cluster import KMeans
 import shap
 import lime
 import lime.lime_tabular
@@ -12,7 +11,7 @@ input_data = json.loads(sys.argv[1])
 student_id = input_data['studentID']
 grades = input_data['grades']  # {'Math': 8, 'Reading': 6, 'Writing': 7}
 
-# Dữ liệu mẫu môn học
+# Dữ liệu môn học có sẵn
 courses = {
     'Math': {'credits': 3, 'difficulty': 0.8},
     'Reading': {'credits': 3, 'difficulty': 0.6},
@@ -20,74 +19,68 @@ courses = {
     'Biology': {'credits': 3, 'difficulty': 0.5},
 }
 
-# Chuyển dữ liệu điểm số thành DataFrame
-grades_df = pd.DataFrame([list(grades.values())], columns=list(grades.keys()))
+# Chuyển điểm thành DataFrame
+grades_df = pd.DataFrame([grades], columns=grades.keys())
 
-# Hàm dự đoán xác suất cụm cho LIME
-def predict_probabilities(model, X):
-    clusters = model.predict(X)
-    probs = np.zeros((X.shape[0], model.n_clusters))
-    for i, cluster in enumerate(clusters):
-        probs[i, cluster] = 1  # Xác suất 100% thuộc về cụm đó
-    return probs
-
-# Hàm phân tích điểm số và đưa ra khuyến nghị
-def recommend_courses(grades_df):
-    n_clusters = min(2, len(grades_df))
-    kmeans = KMeans(n_clusters, random_state=0, n_init=10).fit(grades_df)
-    cluster = kmeans.labels_[0]
-
+# Xây dựng hệ thống gợi ý
+def recommend_courses(grades):
     recommendations = []
+    
+    # Nếu điểm < 7, gợi ý học lại môn đó
     for subject, score in grades.items():
         if score < 7:
             recommendations.append(subject)
 
+    # Nếu không có môn nào cần học lại, gợi ý môn học mới
     if not recommendations:
         available_courses = [c for c in courses.keys() if c not in grades.keys()]
-        recommendations = available_courses[:2]
+        recommendations = available_courses[:2]  # Chọn 2 môn mới
 
-    return recommendations, kmeans
+    return recommendations
 
-# Hàm giải thích bằng SHAP và LIME
-def explain_recommendations(grades_df, recommendations, kmeans_model):
+# Hàm giải thích bằng SHAP & LIME
+def explain_recommendations(grades_df, recommendations):
     explanations = []
     feature_names = list(grades_df.columns)
     X = grades_df.values
 
-    # SHAP
-    background = np.median(X, axis=0).reshape(1, -1)
-    explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
-    shap_values = explainer_shap.shap_values(X)
+    # Mô phỏng model đơn giản dựa trên điểm số
+    def simple_model(X):
+        return np.array([sum(x) / len(x) for x in X])  # Trung bình điểm số
+
+    # SHAP: Đánh giá ảnh hưởng của từng môn
+    explainer_shap = shap.Explainer(simple_model, X)
+    shap_values = explainer_shap(X)[0].values
 
     shap_explanation = []
     for i, feature in enumerate(feature_names):
-        shap_value = shap_values[0][i]
-        if shap_value > 0:
-            shap_explanation.append(f"{feature} (điểm số: {grades[feature]}) có ảnh hưởng lớn đến quyết định (SHAP value: {shap_value:.2f})")
+        shap_value = shap_values[i]
+        shap_explanation.append(f"{feature} (điểm: {grades[feature]}) có tác động {shap_value:.2f} đến quyết định.")
 
-    # LIME
+    # LIME: Mô hình dự đoán xác suất học môn mới
     explainer_lime = lime.lime_tabular.LimeTabularExplainer(
         training_data=X,
         feature_names=feature_names,
-        mode='regression',  
+        mode='regression',
         random_state=0
     )
-    lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=3)
+    lime_exp = explainer_lime.explain_instance(X[0], simple_model, num_features=3)
     lime_explanation = lime_exp.as_list()
 
+    # Tạo giải thích cuối cùng
     for rec in recommendations:
         if rec in grades:
-            explanations.append(f"{rec} được đề xuất vì điểm số của bạn là {grades[rec]}, thấp hơn ngưỡng yêu cầu (7).")
+            explanations.append(f"Môn {rec} được đề xuất vì điểm của bạn là {grades[rec]}, thấp hơn 7.")
         else:
-            explanations.append(f"{rec} được đề xuất vì đây là môn học mới, có độ khó {courses[rec]['difficulty']} phù hợp với bạn.")
+            explanations.append(f"Môn {rec} được đề xuất vì đây là môn mới, có độ khó {courses[rec]['difficulty']}.")
 
     return explanations, shap_explanation, lime_explanation
 
-# Thực hiện phân tích
-recommendations, kmeans_model = recommend_courses(grades_df)
-explanations, shap_explanation, lime_explanation = explain_recommendations(grades_df, recommendations, kmeans_model)
+# Thực hiện gợi ý
+recommendations = recommend_courses(grades)
+explanations, shap_explanation, lime_explanation = explain_recommendations(grades_df, recommendations)
 
-# Kết quả trả về
+# Kết quả JSON
 result = {
     'studentID': student_id,
     'recommendedCourses': recommendations,
