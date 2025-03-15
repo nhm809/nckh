@@ -16,8 +16,8 @@
         </div>
         
         <div class="login-form">
-            <label for="StudentID">Student ID</label>
-            <input type="text" id="StudentID" placeholder="Tài khoản">
+            <label for="studentID">Student ID</label>
+            <input type="text" id="studentID" placeholder="Tài khoản">
 
             <label for="password">Mật khẩu</label>
             <input type="password" id="password" placeholder="Mật khẩu">
@@ -49,6 +49,7 @@
         <!-- Phần gợi ý lộ trình học tập -->
         <h2>Gợi Ý Lộ Trình Học Tập</h2>
         <input id="recommendStudentID" placeholder="Student ID">
+        <!-- <input type="text" id="grades" value='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'> -->
         <textarea id="grades" placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'></textarea>
         <button onclick="recommendCourses()">Lấy Gợi Ý</button>
         <p id="recommendResult"></p>
@@ -59,6 +60,7 @@
     </div>
 
     <script>
+
         function logout() {
             localStorage.removeItem("loggedIn"); // Xóa trạng thái đăng nhập
             showLoginForm();

@@ -3,13 +3,12 @@ import Web3 from 'web3';
 import { PythonShell } from 'python-shell';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import fs from 'fs';
+import csv from 'csv-parser';
 
 dotenv.config();
-
-
 const app = express();
 app.use(express.json());
-
 app.use(cors({ origin: "http://127.0.0.1:5500" }));
 
 
@@ -118,6 +117,49 @@ const contractABI = [
 ];
 
 
+// ✅ API đọc điểm số từ CSV
+const readGradesFromCSV = (studentID) => {
+  return new Promise((resolve, reject) => {
+      let studentData = null;
+      fs.createReadStream("./DataProcessor/Processed_StudentsPerformance.csv") // Đảm bảo đường dẫn chính xác
+          .pipe(csv())
+          .on("data", (row) => {
+              if (row.studentID === studentID) {
+                  studentData = {
+                      Math: parseFloat(row.math_score), Reading: parseFloat(row.reading_score), Writing: parseFloat(row.writing_score),
+                  };
+              }
+          })
+          .on("end", () => {
+              if (studentData) {
+                  resolve(studentData);
+              } else {
+                  reject(new Error("Không tìm thấy sinh viên"));
+              }
+          })
+          .on("error", (error) => reject(error));
+  });
+};
+
+
+// ✅ API lấy điểm số của sinh viên
+app.get('/get-grades', async (req, res) => {
+  const { studentID } = req.query;
+  if (!studentID) {
+      return res.status(400).json({ error: "Thiếu studentID" });
+  }
+
+  try {
+      const studentData = await readGradesFromCSV(studentID);
+      res.json({ grades: studentData });
+  } catch (error) {
+      res.status(404).json({ error: error.message });
+  }
+});
+
+
+
+
 // Danh sách tài khoản giả lập (Có thể thay bằng DB sau này)
 const users = [
   { studentID: "S0001", password: "123" },
@@ -173,7 +215,7 @@ app.post('/recommend-courses', (req, res) => {
       pythonOptions: ['-u'],
       args: [JSON.stringify({ studentID, grades })]
   };
-  PythonShell.run('backend/ai/analyze.py', options, (err, results) => {
+  PythonShell.run('../AI&XAI/analyze.py', options, (err, results) => {
       if (err) return res.status(500).send(err.message);
       // Trả về kết quả từ Python script
       res.status(200).json(JSON.parse(results[0]));

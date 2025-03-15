@@ -1,5 +1,5 @@
 async function login() {
-    const studentID = document.getElementById("StudentID").value.trim();
+    const studentID = document.getElementById("studentID").value.trim();
     const password = document.getElementById("password").value.trim();
     
     if (!studentID || !password) {
@@ -40,15 +40,22 @@ async function fetchStudentGrades(studentID) {
         }
 
         const result = await response.json();
-        document.getElementById("grades").value = JSON.stringify(result.grades, null, 2);
-        recommendCourses();
+        console.log("Dữ liệu nhận được:", result); // Log để kiểm tra dữ liệu
+
+        if (result.grades) {
+            document.getElementById("grades").value = JSON.stringify(result.grades, null, 2);
+            recommendCourses();
+        } else {
+            throw new Error("Dữ liệu không hợp lệ.");
+        }
     } catch (error) {
         alert(error.message);
     }
 }
 
+
 async function recommendCourses() {
-    const studentID = document.getElementById("recommendStudentID").value;
+    const studentID = document.getElementById("studentID").value;
     const grades = document.getElementById("grades").value;
 
     if (!studentID || !grades) {
@@ -96,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    document.getElementById("StudentID").addEventListener("keydown", handleEnter);
+    document.getElementById("studentID").addEventListener("keydown", handleEnter);
     document.getElementById("password").addEventListener("keydown", handleEnter);
 });
 
