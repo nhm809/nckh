@@ -103,7 +103,47 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
+    
     document.getElementById("studentID").addEventListener("keydown", handleEnter);
     document.getElementById("password").addEventListener("keydown", handleEnter);
 });
+async function verifyCertificate() {
+    const studentID = document.getElementById("verifyStudentID").value.trim();
+    const certificateHash = document.getElementById("verifyHash").value.trim();
+    const resultElement = document.getElementById("verifyResult");
+
+    if (!studentID || !certificateHash) {
+        resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
+        resultElement.style.color = "red";
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:3000/verify-certificate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentID, certificateHash }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            resultElement.innerText = "Bằng cấp hợp lệ!";
+            resultElement.style.color = "green";
+        } else {
+            resultElement.innerText = "Bằng cấp không hợp lệ!";
+            resultElement.style.color = "red";
+        }
+    } catch (error) {
+        console.error("Lỗi khi xác minh:", error);
+        resultElement.innerText = "Lỗi khi xác minh!";
+        resultElement.style.color = "red";
+    }
+}
+
+// Gán sự kiện khi nhấn Enter để xác minh
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector("button[onclick='verifyCertificate()']").addEventListener("click", verifyCertificate);
+});
+
 
