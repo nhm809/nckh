@@ -197,10 +197,13 @@ app.post('/add-certificate', async (req, res) => {
     const { studentID, certificateHash } = req.body;
     try {
         const accounts = await web3.eth.getAccounts();
-        await contract.methods.addCertificate(studentID, certificateHash).send({ from: accounts[0] });
-        res.status(200).send('Certificate added successfully');
+        const estimatedGas = await contract.methods.addCertificate(studentID, certificateHash)
+            .estimateGas({ from: accounts[0] });
+        const tx = await contract.methods.addCertificate(studentID, certificateHash).send({ from: accounts[0], gas: estimatedGas});
+
+        res.status(200).json({ message: "Certificate added successfully", txHash: tx.transactionHash });
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).json({ message: "Lỗi máy chủ", error: error.toString() });
     }
 });
 
