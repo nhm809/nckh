@@ -6,9 +6,15 @@ from sklearn.cluster import KMeans
 import shap
 import lime
 import lime.lime_tabular
+import orjson
+import sys
+
+
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 # Đọc dữ liệu đầu vào từ API (JSON)
-input_data = json.loads(sys.argv[1])
+input_data = orjson.loads(sys.argv[1])
 student_id = input_data['studentID']
 grades = input_data['grades']  # {'Math': 8, 'Reading': 6, 'Writing': 7}
 
@@ -41,7 +47,7 @@ def recommend_courses(grades_df):
         return recommendations[:2], None  
 
     n_clusters = min(2, len(grades_df))
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10).fit(grades_df)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=3).fit(grades_df)
     cluster = kmeans.labels_[0]
 
     recommendations = [subject for subject, score in grades.items() if score < 7]
@@ -63,9 +69,10 @@ def explain_recommendations(grades_df, recommendations, kmeans_model):
 
     if kmeans_model is not None:
         # SHAP
-        background = np.median(X, axis=0).reshape(1, -1)
+        background = grades_df.sample(n=1, random_state=42).values
         explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
         shap_values = explainer_shap.shap_values(X)
+
 
         for i, feature in enumerate(feature_names):
             shap_value = shap_values[0][i]
@@ -79,7 +86,8 @@ def explain_recommendations(grades_df, recommendations, kmeans_model):
             mode='classification',
             random_state=0
         )
-        lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=3)
+        lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=2)
+
         lime_explanation = lime_exp.as_list()
 
     for rec in recommendations:
@@ -103,5 +111,5 @@ result = {
     'limeExplanation': [str(exp) for exp in lime_explanation]
 }
 
-# In kết quả dưới dạng JSON
-print(json.dumps(result))
+# In kết quả dưới dạng ORSON
+print(orjson.dumps(result, option=orjson.OPT_NON_STR_KEYS).decode("utf-8"))

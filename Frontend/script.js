@@ -55,34 +55,64 @@ async function fetchStudentGrades(studentID) {
 
 
 async function recommendCourses() {
-    const studentID = document.getElementById("studentID").value;
+    const studentID = document.getElementById("recommendStudentID").value;
     const grades = document.getElementById("grades").value;
 
-
-    if (!grades) {
-        alert("Không có dữ liệu điểm số để gợi ý.");
+    if (!studentID || !grades) {
+        alert("Vui lòng nhập Student ID và điểm số.");
         return;
     }
 
     try {
-        const parsedGrades = JSON.parse(grades);
+        // Parse grades từ chuỗi JSON
+        let parsedGrades;
+        try {
+            parsedGrades = JSON.parse(grades);
+        } catch (parseError) {
+            alert("Điểm số không đúng định dạng JSON. Ví dụ: {\"Math\": 7.2, \"Reading\": 7.2}");
+            console.error("Lỗi parse JSON:", parseError);
+            return;
+        }
+
+        // Gọi API
         const response = await fetch("http://localhost:3000/recommend-courses", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ studentID, grades: parsedGrades }),
         });
 
+        // Kiểm tra phản hồi từ API
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Lỗi từ server: ${response.status} - ${errorText}`);
+        }
+
         const result = await response.json();
 
-        // Gán kết quả vào các thẻ HTML
-        document.getElementById("recommendations").innerHTML = `<b>Gợi ý khóa học:</b> ${result.recommendedCourses.join(", ")}`;
-        document.getElementById("explanations").innerHTML = `<b>Giải thích:</b> ${result.explanations}`;
-        document.getElementById("shapExplanation").innerHTML = `<b>SHAP:</b> ${JSON.stringify(result.shapExplanation, null, 2)}`;
-        document.getElementById("limeExplanation").innerHTML = `<b>LIME:</b> ${result.limeExplanation.join("<br>")}`;
+        // Hiển thị kết quả
+        document.getElementById("recommendations").innerHTML = result.recommendedCourses
+            ? `<b>Gợi ý khóa học:</b> ${result.recommendedCourses.join(", ")}`
+            : "Không có gợi ý khóa học.";
+
+        document.getElementById("explanations").innerHTML = result.explanations
+            ? `<b>Giải thích:</b> ${result.explanations}`
+            : "Không có giải thích.";
+
+        document.getElementById("shapExplanation").innerHTML = result.shapExplanation
+            ? `<b>SHAP:</b> ${JSON.stringify(result.shapExplanation, null, 2)}`
+            : "Không có giải thích SHAP.";
+
+        document.getElementById("limeExplanation").innerHTML = result.limeExplanation
+            ? `<b>LIME:</b> ${result.limeExplanation.join("<br>")}`
+            : "Không có giải thích LIME.";
 
     } catch (error) {
         alert("Lỗi khi xử lý gợi ý lộ trình học tập.");
-        console.error(error);
+        console.error("Chi tiết lỗi:", {
+            message: error.message,
+            stack: error.stack,
+            request: { studentID, grades },
+        });
     }
 }
 

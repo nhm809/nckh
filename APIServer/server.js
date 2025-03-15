@@ -129,7 +129,7 @@ const contractAddress = contractJSON.networks[5777]?.address; // Tự động l�
 const readGradesFromCSV = (studentID) => {
   return new Promise((resolve, reject) => {
       let studentData = null;
-      fs.createReadStream("./DataProcessor/Processed_StudentsPerformance.csv") // Đảm bảo đường dẫn chính xác
+      fs.createReadStream("./DataProcessor/Processed_StudentsPerformance.csv")
           .pipe(csv())
           .on("data", (row) => {
               if (row.studentID === studentID) {
@@ -224,18 +224,29 @@ app.get('/verify-certificate', async (req, res) => {
 
 // API để gợi ý lộ trình học tập từ AI và XAI
 app.post('/recommend-courses', (req, res) => {
-  const { studentID, grades } = req.body;
-  // Cấu hình PythonShell để gọi script analyze.py
-  const options = {
-      mode: 'text',
-      pythonOptions: ['-u'],
-      args: [JSON.stringify({ studentID, grades })]
-  };
-  PythonShell.run('./AI_XAI/analyze.py', options, (err, results) => {
-      if (err) return res.status(500).send(err.message);
-      // Trả về kết quả từ Python script
-      res.status(200).json(JSON.parse(results[0]));
-  });
+    const { studentID, grades } = req.body;
+    if (!studentID || !grades) {
+        return res.status(400).json({ error: "Thiếu studentID hoặc grades" });
+    }
+
+    const options = {
+        mode: 'text',
+        pythonOptions: ['-u'],
+        args: [JSON.stringify({ studentID, grades })]
+    };
+    PythonShell.run('./AI_XAI/analyze.py', options, (err, results) => {
+        if (err) {
+            console.error("Lỗi từ PythonShell:", err);
+            return res.status(500).json({ error: err.message });
+        }
+        try {
+            const result = JSON.parse(results[0]);
+            res.status(200).json(result);
+        } catch (parseError) {
+            console.error("Lỗi khi parse kết quả từ Python:", parseError);
+            res.status(500).json({ error: "Lỗi khi xử lý kết quả từ Python" });
+        }
+    });
 });
 
 // Khởi động server
