@@ -145,5 +145,33 @@ async function verifyCertificate() {
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("button[onclick='verifyCertificate()']").addEventListener("click", verifyCertificate);
 });
+async function addCertificate() {
+    const studentID = document.getElementById("studentID").value.trim();
+    const certificateHash = document.getElementById("certificateHash").value.trim();
+
+    if (!studentID || !certificateHash) {
+        alert("Vui lòng nhập đầy đủ thông tin!");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:3000/add-certificate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentID, certificateHash })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Thêm bằng cấp thành công!");
+        } else {
+            alert("Thêm bằng cấp thất bại: " + data.message);
+        }
+    } catch (error) {
+        console.error("Lỗi khi thêm bằng cấp:", error);
+        alert("Lỗi khi kết nối đến server.");
+    }
+}
 
 
