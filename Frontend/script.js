@@ -193,10 +193,10 @@ async function addCertificate() {
 
         const data = await response.json();
 
-        if (data.success) {
-            alert("Thêm bằng cấp thành công!");
+        if (response.ok) {
+            alert(data.message || "Thêm bằng cấp thành công!");
         } else {
-            alert("Thêm bằng cấp thất bại: " + data.message);
+            alert("Thêm bằng cấp thất bại: " + (data.message || "Lỗi không xác định"));
         }
     } catch (error) {
         console.error("Lỗi khi thêm bằng cấp:", error);
