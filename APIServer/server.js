@@ -134,9 +134,12 @@ const readGradesFromCSV = (studentID) => {
           .on("data", (row) => {
               if (row.studentID === studentID) {
                   studentData = {
-                      Math: parseFloat(row.math_score), 
-                      Reading: parseFloat(row.reading_score), 
-                      Writing: parseFloat(row.writing_score),
+                      studentID: String(row.studentID),
+                      grades: {
+                        Math: parseFloat(row.math_score), 
+                        Reading: parseFloat(row.reading_score), 
+                        Writing: parseFloat(row.writing_score),
+                      }
                   };
               }
           })
