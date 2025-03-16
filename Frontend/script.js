@@ -20,12 +20,14 @@ async function login() {
             document.querySelector(".login-container").style.display = "none";
             document.querySelector(".main-content").style.display = "block";
             document.getElementById("recommendStudentID").value = studentID;
-            
-            if (studentID.toLowerCase() === "admin") { // Thêm mới
-                document.getElementById("recommendStudentID").removeAttribute("readonly"); // Thêm mới
+
+            if (studentID.toLowerCase() === "admin") { 
+                document.getElementById("recommendStudentID").removeAttribute("readonly");
+                alert("Xin chào Admin!"); // ✅ Thêm mới
             } else if (/^S\d{4}$/.test(studentID)) {
                 document.getElementById("recommendStudentID").setAttribute("readonly", true);
                 fetchStudentGrades(studentID);
+                alert(`Xin chào ${studentID}!`); // ✅ Thêm mới
             }
         } else {
             document.getElementById("loginError").innerText = result.message;
@@ -43,7 +45,7 @@ async function fetchStudentGrades(studentID) {
         }
 
         const result = await response.json();
-        console.log("Dữ liệu nhận được:", result); // Log để kiểm tra dữ liệu
+        console.log("Dữ liệu nhận được:", result);
 
         if (result.grades) {
             document.getElementById("grades").value = JSON.stringify(result.grades, null, 2);
@@ -130,13 +132,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    
     document.getElementById("studentID").addEventListener("keydown", handleEnter);
     document.getElementById("password").addEventListener("keydown", handleEnter);
     document.getElementById("recommendStudentID").addEventListener("blur", function () {
         const studentID = this.value.trim();
-        if (studentID && document.getElementById("studentID").value.toLowerCase() === "admin") { // Thêm mới
-            fetchStudentGrades(studentID); // Thêm mới
+        if (studentID && document.getElementById("studentID").value.toLowerCase() === "admin") {
+            fetchStudentGrades(studentID);
         }
     });
 });
