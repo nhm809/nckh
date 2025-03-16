@@ -21,8 +21,8 @@ async function login() {
             document.querySelector(".main-content").style.display = "block";
             document.getElementById("recommendStudentID").value = studentID;
             
-            if (studentID.toLowerCase() === "admin") { // ✅ Thêm mới
-                document.getElementById("recommendStudentID").removeAttribute("readonly"); // ✅ Thêm mới
+            if (studentID.toLowerCase() === "admin") { // Thêm mới
+                document.getElementById("recommendStudentID").removeAttribute("readonly"); // Thêm mới
             } else if (/^S\d{4}$/.test(studentID)) {
                 document.getElementById("recommendStudentID").setAttribute("readonly", true);
                 fetchStudentGrades(studentID);
@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("password").addEventListener("keydown", handleEnter);
     document.getElementById("recommendStudentID").addEventListener("blur", function () {
         const studentID = this.value.trim();
-        if (studentID && document.getElementById("studentID").value.toLowerCase() === "admin") { // ✅ Thêm mới
-            fetchStudentGrades(studentID); // ✅ Thêm mới
+        if (studentID && document.getElementById("studentID").value.toLowerCase() === "admin") { // Thêm mới
+            fetchStudentGrades(studentID); // Thêm mới
         }
     });
 });
