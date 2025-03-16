@@ -52,7 +52,11 @@
         <input id="recommendStudentID" placeholder="Student ID">
         <input id="confirmStudentID" placeholder="Xác nhận Student ID">
         </div>
-        <textarea id="grades" placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}'></textarea>
+        <textarea id="grades" 
+          placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}' 
+          oninput="autoResize(this)"
+          style="overflow:hidden; min-height:125px; width: 55%;"></textarea>
+
         <button onclick="recommendCourses()">Lấy Gợi Ý</button>
         <div id="recommendations"></div>
         <div id="explanations"></div>
@@ -85,6 +89,12 @@
                 showLoginForm();
             }
         }
+
+        function autoResize(textarea) {
+            textarea.style.height = "auto"; // Reset chiều cao về auto
+            textarea.style.height = textarea.scrollHeight + "px"; // Gán chiều cao mới theo nội dung
+        }
+
     </script>
     <script src="script.js" defer></script> <!-- ✅ Thêm defer -->
 </body>
