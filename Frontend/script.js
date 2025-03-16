@@ -135,6 +135,12 @@ document.addEventListener("DOMContentLoaded", function () {
     
     document.getElementById("studentID").addEventListener("keydown", handleEnter);
     document.getElementById("password").addEventListener("keydown", handleEnter);
+     document.getElementById("recommendStudentID").addEventListener("blur", function () {
+        const studentID = this.value.trim();
+        if (studentID) {
+            fetchStudentGrades(studentID);
+        }
+    });
 });
 async function verifyCertificate() {
     const studentID = document.getElementById("verifyStudentID").value.trim();
