@@ -21,7 +21,10 @@ async function login() {
             document.querySelector(".main-content").style.display = "block";
             document.getElementById("recommendStudentID").value = studentID;
             
-            if (/^S\d{4}$/.test(studentID)) {
+            if (studentID.toLowerCase() === "admin") { // ✅ Thêm mới
+                document.getElementById("recommendStudentID").removeAttribute("readonly"); // ✅ Thêm mới
+            } else if (/^S\d{4}$/.test(studentID)) {
+                document.getElementById("recommendStudentID").setAttribute("readonly", true);
                 fetchStudentGrades(studentID);
             }
         } else {
@@ -53,7 +56,6 @@ async function fetchStudentGrades(studentID) {
     }
 }
 
-
 async function recommendCourses() {
     const studentID = document.getElementById("recommendStudentID").value;
     const grades = document.getElementById("grades").value;
@@ -64,7 +66,6 @@ async function recommendCourses() {
     }
 
     try {
-        // Parse grades từ chuỗi JSON
         let parsedGrades;
         try {
             parsedGrades = JSON.parse(grades);
@@ -74,14 +75,12 @@ async function recommendCourses() {
             return;
         }
 
-        // Gọi Flask API
         const response = await fetch('http://localhost:5000/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ studentID, grades: parsedGrades }),
         });
 
-        // Kiểm tra phản hồi từ API
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Lỗi từ server: ${response.status} - ${errorText}`);
@@ -89,7 +88,6 @@ async function recommendCourses() {
 
         const result = await response.json();
 
-        // Hiển thị kết quả
         document.getElementById("recommendations").innerHTML = result.recommendedCourses
             ? `<b>Gợi ý khóa học:</b> ${result.recommendedCourses.join(", ")}`
             : "Không có gợi ý khóa học.";
@@ -135,13 +133,14 @@ document.addEventListener("DOMContentLoaded", function () {
     
     document.getElementById("studentID").addEventListener("keydown", handleEnter);
     document.getElementById("password").addEventListener("keydown", handleEnter);
-     document.getElementById("recommendStudentID").addEventListener("blur", function () {
+    document.getElementById("recommendStudentID").addEventListener("blur", function () {
         const studentID = this.value.trim();
-        if (studentID) {
-            fetchStudentGrades(studentID);
+        if (studentID && document.getElementById("studentID").value.toLowerCase() === "admin") { // ✅ Thêm mới
+            fetchStudentGrades(studentID); // ✅ Thêm mới
         }
     });
 });
+
 async function verifyCertificate() {
     const studentID = document.getElementById("verifyStudentID").value.trim();
     const certificateHash = document.getElementById("verifyHash").value.trim();
@@ -176,10 +175,10 @@ async function verifyCertificate() {
     }
 }
 
-// Gán sự kiện khi nhấn Enter để xác minh
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("button[onclick='verifyCertificate()']").addEventListener("click", verifyCertificate);
 });
+
 async function addCertificate() {
     const studentID = document.getElementById("studentID").value.trim();
     const certificateHash = document.getElementById("certificateHash").value.trim();
@@ -208,5 +207,3 @@ async function addCertificate() {
         alert("Lỗi khi kết nối đến server.");
     }
 }
-
-
