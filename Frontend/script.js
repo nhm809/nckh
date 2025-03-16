@@ -74,10 +74,10 @@ async function recommendCourses() {
             return;
         }
 
-        // Gọi API
-        const response = await fetch("http://localhost:3000/recommend-courses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+        // Gọi Flask API
+        const response = await fetch('http://localhost:5000/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ studentID, grades: parsedGrades }),
         });
 
@@ -115,7 +115,6 @@ async function recommendCourses() {
         });
     }
 }
-
 
 function logout() {
     localStorage.removeItem("loggedIn"); 

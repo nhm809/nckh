@@ -1,5 +1,4 @@
-import sys
-import json
+from flask import Flask, request, jsonify
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -7,16 +6,12 @@ import shap
 import lime
 import lime.lime_tabular
 import orjson
-import sys
+from flask_cors import CORS  # Thêm dòng này
+import traceback
 
+app = Flask(__name__)
+CORS(app)  # Kích hoạt CORS
 
-sys.stdout.reconfigure(encoding='utf-8')
-
-
-# Đọc dữ liệu đầu vào từ API (JSON)
-input_data = orjson.loads(sys.argv[1])
-student_id = input_data['studentID']
-grades = input_data['grades']  # {'Math': 8, 'Reading': 6, 'Writing': 7}
 
 # Dữ liệu mẫu môn học
 courses = {
@@ -25,9 +20,6 @@ courses = {
     'Writing': {'credits': 3, 'difficulty': 0.7},
     'Biology': {'credits': 3, 'difficulty': 0.5},
 }
-
-# Chuyển dữ liệu điểm số thành DataFrame
-grades_df = pd.DataFrame([list(grades.values())], columns=list(grades.keys()))
 
 # Hàm dự đoán xác suất cụm cho LIME
 def predict_probabilities(model, X):
@@ -40,39 +32,42 @@ def predict_probabilities(model, X):
     return probs
 
 # Hàm phân tích điểm số và đưa ra khuyến nghị
-def recommend_courses(grades_df):
-    if grades_df.shape[0] == 1:
-        # Không dùng KMeans khi chỉ có 1 sinh viên
-        recommendations = [c for c in courses.keys() if c not in grades]
-        return recommendations[:2], None  
-
-    n_clusters = min(2, len(grades_df))
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=3).fit(grades_df)
-    cluster = kmeans.labels_[0]
-
+def recommend_courses(grades_df, grades):
     recommendations = [subject for subject, score in grades.items() if score < 7]
 
     if not recommendations:
         available_courses = [c for c in courses.keys() if c not in grades.keys()]
         recommendations = available_courses[:2]
 
-    return recommendations, kmeans
+    # Chỉ sử dụng KMeans nếu có nhiều hơn 1 sinh viên
+    kmeans_model = None
+    if grades_df.shape[0] > 1:
+        n_clusters = min(2, len(grades_df))
+        kmeans_model = KMeans(n_clusters=n_clusters, random_state=0, n_init=3).fit(grades_df)
+
+    return recommendations, kmeans_model
 
 # Hàm giải thích bằng SHAP và LIME
-def explain_recommendations(grades_df, recommendations, kmeans_model):
+def explain_recommendations(grades_df, recommendations, kmeans_model, grades):
     explanations = []
     shap_explanation = []
     lime_explanation = []
-    
-    feature_names = list(grades_df.columns)
-    X = grades_df.values
 
+    for rec in recommendations:
+        if rec in grades:
+            explanations.append(f"{rec} được đề xuất vì điểm số của bạn là {grades[rec]}, thấp hơn ngưỡng yêu cầu (7).")
+        else:
+            explanations.append(f"{rec} được đề xuất vì đây là môn học mới, có độ khó {courses[rec]['difficulty']} phù hợp với bạn.")
+
+    # Chỉ sử dụng SHAP và LIME nếu có mô hình KMeans
     if kmeans_model is not None:
+        feature_names = list(grades_df.columns)
+        X = grades_df.values
+
         # SHAP
         background = grades_df.sample(n=1, random_state=42).values
         explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
         shap_values = explainer_shap.shap_values(X)
-
 
         for i, feature in enumerate(feature_names):
             shap_value = shap_values[0][i]
@@ -87,29 +82,45 @@ def explain_recommendations(grades_df, recommendations, kmeans_model):
             random_state=0
         )
         lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=2)
-
         lime_explanation = lime_exp.as_list()
-
-    for rec in recommendations:
-        if rec in grades:
-            explanations.append(f"{rec} được đề xuất vì điểm số của bạn là {grades[rec]}, thấp hơn ngưỡng yêu cầu (7).")
-        else:
-            explanations.append(f"{rec} được đề xuất vì đây là môn học mới, có độ khó {courses[rec]['difficulty']} phù hợp với bạn.")
 
     return explanations, shap_explanation, lime_explanation
 
-# Thực hiện phân tích
-recommendations, kmeans_model = recommend_courses(grades_df)
-explanations, shap_explanation, lime_explanation = explain_recommendations(grades_df, recommendations, kmeans_model)
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    try:
+        data = request.json
+        print("📥 Nhận dữ liệu từ frontend:", data)
 
-# Kết quả trả về
-result = {
-    'studentID': student_id,
-    'recommendedCourses': recommendations,
-    'explanations': explanations,
-    'shapExplanation': shap_explanation,
-    'limeExplanation': [str(exp) for exp in lime_explanation]
-}
+        student_id = data.get('studentID')
+        grades = data.get('grades')
+        if 'grades' in grades:
+            grades = grades['grades']
 
-# In kết quả dưới dạng ORSON
-print(orjson.dumps(result, option=orjson.OPT_NON_STR_KEYS).decode("utf-8"))
+        if not student_id or not grades:
+            return jsonify({"error": "Dữ liệu không hợp lệ"}), 400
+
+        grades_df = pd.DataFrame([list(grades.values())], columns=list(grades.keys()))
+        print("📝 DataFrame:\n", grades_df)
+
+        recommendations, kmeans_model = recommend_courses(grades_df, grades)
+        explanations, shap_explanation, lime_explanation = explain_recommendations(grades_df, recommendations, kmeans_model, grades)
+
+        result = {
+            'studentID': student_id,
+            'recommendedCourses': recommendations,
+            'explanations': explanations,
+            'shapExplanation': shap_explanation,
+            'limeExplanation': [str(exp) for exp in lime_explanation]
+        }
+
+        print("✅ Phản hồi:", result)
+        return jsonify(result)
+
+    except Exception as e:
+        print("❌ Lỗi backend:", e)
+        print(traceback.format_exc())  # In chi tiết lỗi
+        return jsonify({"error": "Lỗi server", "details": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(port=5000)
