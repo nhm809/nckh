@@ -41,7 +41,7 @@ async function fetchStudentGrades(studentIDs) {
             document.getElementById("grades").value = JSON.stringify(result.students, null, 2);
 
             // Gọi hàm recommendCourses với dữ liệu đúng định dạng
-            recommendCourses(result.students);
+            // recommendCourses(result.students);
         } else {
             throw new Error("Dữ liệu không hợp lệ.");
         }
