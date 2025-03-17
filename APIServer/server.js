@@ -237,6 +237,14 @@ app.get('/verify-certificate', async (req, res) => {
     }
 
     try {
+        const existingStudentID = await contract.methods.hashToStudent(certificateHash).call();
+        if (existingStudentID && existingStudentID !== studentID) {
+            return res.status(400).json({
+                error: "Certificate hash đã được sử dụng bởi một sinh viên khác",
+                existingStudentID: existingStudentID
+            });
+        }
+
         const isValid = await contract.methods.verifyCertificate(studentID, certificateHash).call();
         res.status(200).json({ isValid });
     } catch (error) {
