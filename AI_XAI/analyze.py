@@ -48,7 +48,7 @@ def recommend_courses(grades_df, grades):
     return recommendations, kmeans_model
 
 # Hàm giải thích bằng SHAP và LIME
-def explain_recommendations(grades_df, recommendations, kmeans_model, grades):
+def explain_recommendations(grades_df, recommendations, kmeans_model, grades, use_shap=True, use_lime=True):
     explanations = []
     shap_explanation = []
     lime_explanation = []
@@ -59,30 +59,32 @@ def explain_recommendations(grades_df, recommendations, kmeans_model, grades):
         else:
             explanations.append(f"{rec} được đề xuất vì đây là môn học mới, có độ khó {courses[rec]['difficulty']} phù hợp với bạn.")
 
-    # Chỉ sử dụng SHAP và LIME nếu có mô hình KMeans
-    if kmeans_model is not None:
+    # Chỉ sử dụng SHAP và LIME nếu có mô hình KMeans và được yêu cầu
+    if kmeans_model is not None and (use_shap or use_lime) and grades_df.shape[0] > 1:
         feature_names = list(grades_df.columns)
         X = grades_df.values
 
         # SHAP
-        background = grades_df.sample(n=1, random_state=42).values
-        explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
-        shap_values = explainer_shap.shap_values(X)
+        if use_shap:
+            background = grades_df.sample(n=1, random_state=42).values
+            explainer_shap = shap.KernelExplainer(kmeans_model.predict, background)
+            shap_values = explainer_shap.shap_values(X)
 
-        for i, feature in enumerate(feature_names):
-            shap_value = shap_values[0][i]
-            if shap_value > 0:
-                shap_explanation.append(f"{feature} (điểm số: {grades[feature]}) có ảnh hưởng lớn (SHAP value: {shap_value:.2f})")
+            for i, feature in enumerate(feature_names):
+                shap_value = shap_values[0][i]
+                if shap_value > 0:
+                    shap_explanation.append(f"{feature} (điểm số: {grades[feature]}) có ảnh hưởng lớn (SHAP value: {shap_value:.2f})")
 
         # LIME
-        explainer_lime = lime.lime_tabular.LimeTabularExplainer(
-            training_data=X,
-            feature_names=feature_names,
-            mode='classification',
-            random_state=0
-        )
-        lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=2)
-        lime_explanation = lime_exp.as_list()
+        if use_lime:
+            explainer_lime = lime.lime_tabular.LimeTabularExplainer(
+                training_data=X,
+                feature_names=feature_names,
+                mode='classification',
+                random_state=0
+            )
+            lime_exp = explainer_lime.explain_instance(X[0], lambda x: predict_probabilities(kmeans_model, x), num_features=2)
+            lime_explanation = lime_exp.as_list()
 
     return explanations, shap_explanation, lime_explanation
 
@@ -92,30 +94,45 @@ def analyze():
         data = request.json
         print("📥 Nhận dữ liệu từ frontend:", data)
 
-        student_id = data.get('studentID')
-        grades = data.get('grades')
-        if 'grades' in grades:
-            grades = grades['grades']
-
-        if not student_id or not grades:
+        students = data.get('students')  # Danh sách sinh viên
+        if not students:
             return jsonify({"error": "Dữ liệu không hợp lệ"}), 400
 
-        grades_df = pd.DataFrame([list(grades.values())], columns=list(grades.keys()))
-        print("📝 DataFrame:\n", grades_df)
+        # Tạo grades_df chứa dữ liệu của tất cả sinh viên
+        grades_data = []
+        for student in students:
+            student_id = student.get('studentID')
+            grades = student.get('grades')
 
-        recommendations, kmeans_model = recommend_courses(grades_df, grades)
-        explanations, shap_explanation, lime_explanation = explain_recommendations(grades_df, recommendations, kmeans_model, grades)
+            if not student_id or not grades:
+                continue  # Bỏ qua nếu thiếu dữ liệu
 
-        result = {
-            'studentID': student_id,
-            'recommendedCourses': recommendations,
-            'explanations': explanations,
-            'shapExplanation': shap_explanation,
-            'limeExplanation': [str(exp) for exp in lime_explanation]
-        }
+            grades_data.append(list(grades.values()))
 
-        print("✅ Phản hồi:", result)
-        return jsonify(result)
+        grades_df = pd.DataFrame(grades_data, columns=list(students[0]['grades'].keys()))
+
+        # Gọi hàm recommend_courses và explain_recommendations
+        results = []
+        for student in students:
+            student_id = student.get('studentID')
+            grades = student.get('grades')
+
+            if not student_id or not grades:
+                continue  # Bỏ qua nếu thiếu dữ liệu
+
+            recommendations, kmeans_model = recommend_courses(grades_df, grades)
+            explanations, shap_explanation, lime_explanation = explain_recommendations(grades_df, recommendations, kmeans_model, grades)
+
+            results.append({
+                'studentID': student_id,
+                'recommendedCourses': recommendations,
+                'explanations': explanations,
+                'shapExplanation': shap_explanation,
+                'limeExplanation': [str(exp) for exp in lime_explanation]
+            })
+
+        print("✅ Phản hồi:", results)
+        return jsonify({"students": results})
 
     except Exception as e:
         print("❌ Lỗi backend:", e)

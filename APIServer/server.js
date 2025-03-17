@@ -142,45 +142,52 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
 // ✅ Đọc điểm số từ CSV
-const readGradesFromCSV = (studentID) => {
+const readGradesFromCSV = (studentIDs) => {
     return new Promise((resolve, reject) => {
-        let studentData = null;
+        const studentDataList = [];
         fs.createReadStream("./DataProcessor/Processed_StudentsPerformance.csv")
             .pipe(csv())
             .on("data", (row) => {
-                if (row.studentID === studentID) {
-                    studentData = {
+                if (studentIDs.includes(row.studentID)) {
+                    studentDataList.push({
                         studentID: String(row.studentID),
                         grades: {
                             Math: parseFloat(row.math_score),
                             Reading: parseFloat(row.reading_score),
                             Writing: parseFloat(row.writing_score),
                         }
-                    };
+                    });
                 }
             })
-            .on("end", () => studentData ? resolve(studentData) : reject(new Error("Không tìm thấy sinh viên")))
+            .on("end", () => {
+                if (studentDataList.length > 0) {
+                    resolve({ students: studentDataList });
+                } else {
+                    reject(new Error("Không tìm thấy sinh viên"));
+                }
+            })
             .on("error", (error) => reject(error));
     });
 };
 
 // ✅ API lấy điểm số của sinh viên
 app.get('/get-grades', async (req, res) => {
-    const { studentID } = req.query;
-    if (!studentID) {
-        return res.status(400).json({ error: "Thiếu studentID" });
+    const { studentIDs } = req.query;
+    if (!studentIDs) {
+        return res.status(400).json({ error: "Thiếu studentIDs" });
     }
 
+    const studentIDArray = studentIDs.split(',');
+
     try {
-        const studentData = await readGradesFromCSV(studentID);
-        console.log(`Dữ liệu của ${studentID}:`, studentData); // ✅ Kiểm tra dữ liệu
+        const studentData = await readGradesFromCSV(studentIDArray);
+        console.log(`Dữ liệu của ${studentIDs}:`, studentData); // ✅ Kiểm tra dữ liệu
         res.setHeader('Cache-Control', 'no-store'); // 🔹 Ngăn cache
-        res.json({ grades: studentData });
+        res.json(studentData);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
 });
-
 
 // ✅ Danh sách tài khoản giả lập
 const users = [

@@ -12,7 +12,7 @@
     "web3": "^4.16.0"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "concurrently \"node server.js\" \"cd .. && python AI_XAI/analyze.py\""
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

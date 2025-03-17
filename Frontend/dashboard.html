@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="main-content">
+        <h1>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h1>
+        <p id="welcomeMessage"></p> <!--  Dòng text chào mừng -->
+
+        <!-- Nút đăng xuất -->
+        <button id="logoutBtn" onclick="logout()">Đăng Xuất</button>
+
+        <!-- Phần dành cho admin -->
+        <div id="adminSection" style="display: none;">
+            <h2>Thêm Bằng Cấp</h2>
+            <input id="studentID" placeholder="Student ID">
+            <input id="certificateHash" placeholder="Certificate Hash">
+            <button onclick="addCertificate()">Thêm Bằng Cấp</button>
+
+            <h2>Xác Minh Bằng Cấp</h2>
+            <input id="verifyStudentID" placeholder="Student ID">
+            <input id="verifyHash" placeholder="Certificate Hash">
+            <button onclick="verifyCertificate()">Xác Minh</button>
+            <p id="verifyResult"></p>
+
+            <!-- Phần gợi ý lộ trình học tập -->
+            <h2>Gợi Ý Lộ Trình Học Tập</h2>
+            <div style="display: flex; gap: 10px;">
+            <input id="recommendStudentID" placeholder="Student IDs (comma separated)">
+            <button onclick="fetchStudentGrades(document.getElementById('recommendStudentID').value.split(','))">Get Grades</button>
+            </div>
+            <textarea id="grades" 
+            placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}' 
+            oninput="autoResize(this)"
+            style="overflow:auto; min-height:125px; width: 55%;"></textarea>
+
+            <button onclick="recommendCourses()">Lấy Gợi Ý</button>
+            <div id="recommendations"></div>
+            <div id="explanations"></div>
+            <div id="shapExplanation"></div>
+            <div id="limeExplanation"></div>
+        </div>
+
+        <!-- Phần dành cho sinh viên -->
+        <div id="studentSection" style="display: none;"> 
+            <h2>Xác Minh Bằng Cấp</h2>
+            <input id="verifyStudentID" placeholder="Student ID">
+            <input id="verifyHash" placeholder="Certificate Hash">
+            <button onclick="verifyCertificate()">Xác Minh</button>
+            <p id="verifyResult"></p>
+
+            <h2>Điểm của Bạn</h2>
+            <textarea id="grades" 
+                placeholder='Nhập điểm dưới dạng JSON, ví dụ: {"Math": 8, "Reading": 6}' 
+                oninput="autoResize(this)"
+                style="overflow:auto; min-height:125px; width: 55%;">
+            </textarea>
+            <h2>Gợi Ý Lộ Trình Học Tập</h2>
+            <button onclick="recommendCourses()">Lấy Gợi Ý</button>
+            <div id="recommendations"></div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
