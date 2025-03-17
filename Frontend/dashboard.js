@@ -143,7 +143,7 @@ async function verifyCertificate() {
 
     try {
         const response = await fetch("http://localhost:3000/verify-certificate", {
-            method: "POST",
+            method: "GET",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ studentID, certificateHash }),
         });
