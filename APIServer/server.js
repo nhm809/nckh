@@ -136,7 +136,15 @@ const web3 = new Web3(process.env.BLOCKCHAIN_RPC);
 const contractJSON = JSON.parse(fs.readFileSync(blockchainPath, 'utf8'));
 const contractABI = contractJSON.abi;
 const contractAddress = contractJSON.networks[5777]?.address; // Đọc địa chỉ từ mạng 5777 (Ganache)
+
+if (!contractAddress) {
+    console.error("Contract address not found for network 5777. Please migrate the contract.");
+    process.exit(1);
+  }
+
 const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+console.log("Using contract address:", contractAddress);
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
