@@ -142,15 +142,22 @@ async function verifyCertificate() {
     }
 
     try {
-        const response = await fetch("http://localhost:3000/verify-certificate", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ studentID, certificateHash }),
-        });
+        // Chuyển sang yêu cầu GET với tham số truy vấn
+        const response = await fetch(
+            `http://localhost:3000/verify-certificate?studentID=${encodeURIComponent(studentID)}&certificateHash=${encodeURIComponent(certificateHash)}`,
+            {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Lỗi server: ${response.status} - ${await response.text()}`);
+        }
 
         const data = await response.json();
 
-        if (data.success) {
+        if (data.isValid) {
             resultElement.innerText = "Bằng cấp hợp lệ!";
             resultElement.style.color = "green";
         } else {
@@ -159,7 +166,7 @@ async function verifyCertificate() {
         }
     } catch (error) {
         console.error("Lỗi khi xác minh:", error);
-        resultElement.innerText = "Lỗi khi xác minh!";
+        resultElement.innerText = "Lỗi khi xác minh: " + error.message;
         resultElement.style.color = "red";
     }
 }
