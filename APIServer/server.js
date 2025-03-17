@@ -241,7 +241,7 @@ app.get('/verify-certificate', async (req, res) => {
         res.status(200).json({ isValid });
     } catch (error) {
         console.error("Lỗi Blockchain:", error);
-        res.status(500).send(error.message);
+        res.status(500).json({ error: "Lỗi Blockchain", details: error.message });
     }
 });
 
