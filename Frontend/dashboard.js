@@ -37,6 +37,25 @@ async function fetchStudentGrades(studentIDs) {
 
         if (result.students) {
             // Lưu dữ liệu điểm số vào trường grades
+            let tableHTML = `<table border="1">
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Math</th>
+                                    <th>Reading</th>
+                                    <th>Writing</th>
+                                </tr>`;
+            
+            result.students.forEach(student => {
+                tableHTML += `<tr>
+                                <td>${student.studentID}</td>
+                                <td>${student.grades.Math}</td>
+                                <td>${student.grades.Reading}</td>
+                                <td>${student.grades.Writing}</td>
+                              </tr>`;
+            });
+
+            tableHTML += `</table>`;
+            
             document.getElementById("grades").value = JSON.stringify(result.students, null, 2);
 
             // Gọi hàm recommendCourses với dữ liệu đúng định dạng
