@@ -216,8 +216,8 @@ app.post("/login", (req, res) => {
 
 // ✅ API thêm bằng cấp vào Blockchain
 app.post('/add-certificate', async (req, res) => {
-    const { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade, certificateHash } = req.body;
-    if (!studentID || !certificateHash || !studentName || !certificateName || !issueDate || !issuedBy || !graduationGrade) {
+    const { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade } = req.body;
+    if (!studentID || !graduationGrade || !studentName || !certificateName || !issueDate || !issuedBy) {
         return res.status(400).json({ error: "Thiếu thông tin" });
     }
 
@@ -229,8 +229,19 @@ app.post('/add-certificate', async (req, res) => {
 
     try {
         const accounts = await web3.eth.getAccounts();
-        const estimatedGas = await contract.methods.addCertificate(studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade, certificateHash).estimateGas({ from: accounts[0] });
-        const tx = await contract.methods.addCertificate(studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade, certificateHash).send({ from: accounts[0], gas: estimatedGas });
+
+        let estimatedGas;
+        try {
+            estimatedGas = await contract.methods.addCertificate(
+                studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade
+            ).estimateGas({ from: accounts[0] });
+        } catch (error) {
+            console.error("Lỗi khi ước tính gas:", error);
+            return res.status(500).json({ error: "Lỗi khi ước tính gas", details: error.toString() });
+        }
+        const tx = await contract.methods.addCertificate(
+            studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade
+        ).send({ from: accounts[0], gas: estimatedGas });
 
         res.status(200).json({ message: "Bằng cấp đã thêm thành công", txHash: tx.transactionHash });
     } catch (error) {
