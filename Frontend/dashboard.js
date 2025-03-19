@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
     } else if (/^S\d{4}$/.test(userID)) {
         document.getElementById("studentSection").style.display = "block";
     }
-
 });
 
 function logout() {
@@ -93,25 +92,25 @@ async function recommendCourses() {
             let explanationsHTML = "";
             let shapExplanationHTML = "";
             let limeExplanationHTML = "";
-
+        
             result.students.forEach(student => {
                 recommendationsHTML += student.recommendedCourses
                     ? `<b>Gợi ý khóa học cho ${student.studentID}:</b> ${student.recommendedCourses.join(", ")}<br>`
                     : `Không có gợi ý khóa học cho ${student.studentID}.<br>`;
-
-                explanationsHTML += student.explanations
+        
+                explanationsHTML += student.explanations && student.explanations.length > 0
                     ? `<b>Giải thích cho ${student.studentID}:</b> ${student.explanations.join(", ")}<br>`
                     : `Không có giải thích cho ${student.studentID}.<br>`;
-
-                shapExplanationHTML += student.shapExplanation
+        
+                shapExplanationHTML += student.shapExplanation && student.shapExplanation.length > 0
                     ? `<b>SHAP cho ${student.studentID}:</b> ${JSON.stringify(student.shapExplanation, null, 2)}<br>`
                     : `Không có giải thích SHAP cho ${student.studentID}.<br>`;
-
-                limeExplanationHTML += student.limeExplanation
+        
+                limeExplanationHTML += student.limeExplanation && student.limeExplanation.length > 0
                     ? `<b>LIME cho ${student.studentID}:</b> ${student.limeExplanation.join("<br>")}<br>`
                     : `Không có giải thích LIME cho ${student.studentID}.<br>`;
             });
-
+        
             document.getElementById("recommendations").innerHTML = recommendationsHTML;
             document.getElementById("explanations").innerHTML = explanationsHTML;
             document.getElementById("shapExplanation").innerHTML = shapExplanationHTML;
@@ -142,22 +141,15 @@ async function verifyCertificate() {
     }
 
     try {
-        // Chuyển sang yêu cầu GET với tham số truy vấn
-        const response = await fetch(
-            `http://localhost:3000/verify-certificate?studentID=${encodeURIComponent(studentID)}&certificateHash=${encodeURIComponent(certificateHash)}`,
-            {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Lỗi server: ${response.status} - ${await response.text()}`);
-        }
+        const response = await fetch("http://localhost:3000/verify-certificate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentID, certificateHash }),
+        });
 
         const data = await response.json();
 
-        if (data.isValid) {
+        if (data.success) {
             resultElement.innerText = "Bằng cấp hợp lệ!";
             resultElement.style.color = "green";
         } else {
@@ -166,7 +158,7 @@ async function verifyCertificate() {
         }
     } catch (error) {
         console.error("Lỗi khi xác minh:", error);
-        resultElement.innerText = "Lỗi khi xác minh: " + error.message;
+        resultElement.innerText = "Lỗi khi xác minh!";
         resultElement.style.color = "red";
     }
 }

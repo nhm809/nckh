@@ -57,7 +57,12 @@ def recommend_courses(grades_df, grades):
 
     if not recommendations:
         available_courses = [c for c in courses.keys() if c not in grades.keys()]
-        recommendations = available_courses[:2]
+        average_score = sum(grades.values()) / len(grades)  # Tính điểm trung bình
+        recommendations = sorted(
+            available_courses,
+            key=lambda x: abs(courses[x]["difficulty"] - average_score)  # Sắp xếp theo độ chênh lệch
+        )[:2]  # Chọn 2 môn học có độ khó gần nhất
+
 
     # Chỉ sử dụng KMeans nếu có nhiều hơn 1 sinh viên
     kmeans_model = None
