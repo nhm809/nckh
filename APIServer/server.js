@@ -10,9 +10,13 @@ import csv from 'csv-parser';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import NodeCache from 'node-cache';
+import moment from 'moment';
+import bodyParser from'body-parser';
 
 dotenv.config();
 const app = express();
+app.use(bodyParser.json());  // Cho phép đọc JSON body
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 app.use(morgan('combined')); // Log tất cả các yêu cầu
@@ -212,15 +216,21 @@ app.post("/login", (req, res) => {
 
 // ✅ API thêm bằng cấp vào Blockchain
 app.post('/add-certificate', async (req, res) => {
-    const { studentID, certificateHash } = req.body;
-    if (!studentID || !certificateHash) {
-        return res.status(400).json({ error: "Thiếu thông tin studentID hoặc certificateHash" });
+    const { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade, certificateHash } = req.body;
+    if (!studentID || !certificateHash || !studentName || !certificateName || !issueDate || !issuedBy || !graduationGrade) {
+        return res.status(400).json({ error: "Thiếu thông tin" });
+    }
+
+    // Chuyển đổi issueDate từ YYYY/MM/DD thành timestamp
+    const issueDateUint = moment(issueDate, "YYYY/MM/DD").unix(); 
+    if (isNaN(issueDateUint)) {
+        return res.status(400).json({ error: "Định dạng ngày không hợp lệ. Dùng YYYY/MM/DD" });
     }
 
     try {
         const accounts = await web3.eth.getAccounts();
-        const estimatedGas = await contract.methods.addCertificate(studentID, certificateHash).estimateGas({ from: accounts[0] });
-        const tx = await contract.methods.addCertificate(studentID, certificateHash).send({ from: accounts[0], gas: estimatedGas });
+        const estimatedGas = await contract.methods.addCertificate(studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade, certificateHash).estimateGas({ from: accounts[0] });
+        const tx = await contract.methods.addCertificate(studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade, certificateHash).send({ from: accounts[0], gas: estimatedGas });
 
         res.status(200).json({ message: "Bằng cấp đã thêm thành công", txHash: tx.transactionHash });
     } catch (error) {
@@ -252,6 +262,33 @@ app.get('/verify-certificate', async (req, res) => {
         res.status(500).json({ error: "Lỗi Blockchain", details: error.message });
     }
 });
+
+app.get('/get-certificate', async (req, res) => {
+    const { studentID } = req.query;
+
+    if (!studentID) {
+        return res.status(400).json({ error: "Thiếu studentID" });
+    }
+
+    try {
+        const certificate = await contract.methods.getCertificate(studentID).call();
+
+        res.status(200).json({
+            studentID: certificate[0],
+            studentName: certificate[1],
+            certificateName: certificate[2],
+            issueDate: moment.unix(parseInt(certificate[3])).format('YYYY/MM/DD'),
+            issuedBy: certificate[4],
+            graduationGrade: certificate[5],
+            certificateHash: certificate[6],
+            timestamp: moment.unix(parseInt(certificate[7])).format('YYYY/MM/DD')
+        });
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy chứng chỉ:", error);
+        res.status(404).json({ error: "Không tìm thấy chứng chỉ" });
+    }
+});
+
 
 // Gọi Python Server
 async function callAPIViaPythonServer(studentID, grades) {
