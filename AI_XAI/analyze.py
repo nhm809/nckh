@@ -8,6 +8,10 @@ import lime.lime_tabular
 import orjson
 from flask_cors import CORS  # Thêm dòng này
 import traceback
+import sys
+
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 app = Flask(__name__)
 CORS(app)  # Kích hoạt CORS
@@ -117,7 +121,7 @@ def explain_recommendations(grades_df, recommendations, kmeans_model, grades, us
 def analyze():
     try:
         data = request.json
-        print("📥 Nhận dữ liệu từ frontend:", data)
+        print("Nhận dữ liệu từ frontend:", data)
 
         students = data.get('students')  # Danh sách sinh viên
         if not students:
@@ -156,11 +160,11 @@ def analyze():
                 'limeExplanation': [str(exp) for exp in lime_explanation]
             })
 
-        print("✅ Phản hồi:", results)
+        print("Phản hồi:", results)
         return jsonify({"students": results})
 
     except Exception as e:
-        print("❌ Lỗi backend:", e)
+        print("Lỗi backend:", e)
         print(traceback.format_exc())  # In chi tiết lỗi
         return jsonify({"error": "Lỗi server", "details": str(e)}), 500
 

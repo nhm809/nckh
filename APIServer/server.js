@@ -36,107 +36,7 @@ app.use(limiter);
 
 // Kết nối với Ethereum Testnet hoặc Ganache
 const web3 = new Web3(process.env.BLOCKCHAIN_RPC);
-// const contractAddress = process.env.CONTRACT_ADDRESS;
-// const contractABI = [
-//   {
-//     "anonymous": false,
-//     "inputs": [
-//       {
-//         "indexed": false,
-//         "internalType": "string",
-//         "name": "studentID",
-//         "type": "string"
-//       },
-//       {
-//         "indexed": false,
-//         "internalType": "string",
-//         "name": "certificateHash",
-//         "type": "string"
-//       },
-//       {
-//         "indexed": false,
-//         "internalType": "uint256",
-//         "name": "timestamp",
-//         "type": "uint256"
-//       }
-//     ],
-//     "name": "CertificateAdded",
-//     "type": "event"
-//   },
-//   {
-//     "inputs": [
-//       {
-//         "internalType": "string",
-//         "name": "",
-//         "type": "string"
-//       }
-//     ],
-//     "name": "certificates",
-//     "outputs": [
-//       {
-//         "internalType": "string",
-//         "name": "studentID",
-//         "type": "string"
-//       },
-//       {
-//         "internalType": "string",
-//         "name": "certificateHash",
-//         "type": "string"
-//       },
-//       {
-//         "internalType": "uint256",
-//         "name": "timestamp",
-//         "type": "uint256"
-//       }
-//     ],
-//     "stateMutability": "view",
-//     "type": "function",
-//     "constant": true
-//   },
-//   {
-//     "inputs": [
-//       {
-//         "internalType": "string",
-//         "name": "_studentID",
-//         "type": "string"
-//       },
-//       {
-//         "internalType": "string",
-//         "name": "_certificateHash",
-//         "type": "string"
-//       }
-//     ],
-//     "name": "addCertificate",
-//     "outputs": [],
-//     "stateMutability": "nonpayable",
-//     "type": "function"
-//   },
-//   {
-//     "inputs": [
-//       {
-//         "internalType": "string",
-//         "name": "_studentID",
-//         "type": "string"
-//       },
-//       {
-//         "internalType": "string",
-//         "name": "_certificateHash",
-//         "type": "string"
-//       }
-//     ],
-//     "name": "verifyCertificate",
-//     "outputs": [
-//       {
-//         "internalType": "bool",
-//         "name": "",
-//         "type": "bool"
-//       }
-//     ],
-//     "stateMutability": "view",
-//     "type": "function",
-//     "constant": true
-//   }
-// ];
+
 const contractJSON = JSON.parse(fs.readFileSync(blockchainPath, 'utf8'));
 const contractABI = contractJSON.abi;
 const contractAddress = contractJSON.networks[5777]?.address; // Đọc địa chỉ từ mạng 5777 (Ganache)
@@ -157,7 +57,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const readGradesFromCSV = (studentIDs) => {
     return new Promise((resolve, reject) => {
         const studentDataList = [];
-        fs.createReadStream("./DataProcessor/Processed_StudentsPerformance.csv")
+        fs.createReadStream("../DataProcessor/Processed_StudentsPerformance.csv")
             .pipe(csv())
             .on("data", (row) => {
                 if (studentIDs.includes(row.studentID)) {
@@ -295,7 +195,7 @@ app.get('/get-certificate', async (req, res) => {
             timestamp: moment.unix(parseInt(certificate[7])).format('YYYY/MM/DD')
         });
     } catch (error) {
-        console.error("❌ Lỗi khi lấy chứng chỉ:", error);
+        console.error("Lỗi khi lấy chứng chỉ:", error);
         res.status(404).json({ error: "Không tìm thấy chứng chỉ" });
     }
 });
