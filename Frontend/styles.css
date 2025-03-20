@@ -1,3 +1,13 @@
+.login-page {
+    height: 100vh;
+    background-image: url('images/anhnen.png'); /* Ảnh nền */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 body {
     font-family: Arial, sans-serif;
     margin: 0;
