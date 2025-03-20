@@ -11,6 +11,10 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("adminSection").style.display = "block";
     } else if (/^S\d{4}$/.test(userID)) {
         document.getElementById("studentSection").style.display = "block";
+        document.querySelectorAll(".recommendStudentID").forEach(input => {
+            input.value = userID;
+        });        
+        fetchStudentGrades(userID);
     }
 });
 
@@ -22,9 +26,8 @@ function logout() {
 async function fetchStudentGrades(studentIDs) {
     try {
 
-        // Gọi API để lấy điểm số của các sinh viên
         if (typeof studentIDs === "string") {
-            studentIDs = studentIDs.split(",").map(id => id.trim());  // Chuyển thành mảng, loại bỏ khoảng trắng nếu có
+            studentIDs = studentIDs.split(",").map(id => id.trim());  
         }
                 
         const response = await fetch(`http://localhost:3000/get-grades?studentIDs=${studentIDs.join(',')}`);
@@ -36,30 +39,9 @@ async function fetchStudentGrades(studentIDs) {
         console.log("Dữ liệu nhận được:", result);
 
         if (result.students) {
-            // Lưu dữ liệu điểm số vào trường grades
-            let tableHTML = `<table border="1">
-                                <tr>
-                                    <th>Student ID</th>
-                                    <th>Math</th>
-                                    <th>Reading</th>
-                                    <th>Writing</th>
-                                </tr>`;
-            
-            result.students.forEach(student => {
-                tableHTML += `<tr>
-                                <td>${student.studentID}</td>
-                                <td>${student.grades.Math}</td>
-                                <td>${student.grades.Reading}</td>
-                                <td>${student.grades.Writing}</td>
-                              </tr>`;
+            document.querySelectorAll(".grades").forEach(textarea => {
+                textarea.value = JSON.stringify(result.students, null, 2);
             });
-
-            tableHTML += `</table>`;
-            
-            document.getElementById("grades").value = JSON.stringify(result.students, null, 2);
-
-            // Gọi hàm recommendCourses với dữ liệu đúng định dạng
-            // recommendCourses(result.students);
         } else {
             throw new Error("Dữ liệu không hợp lệ.");
         }
@@ -69,7 +51,7 @@ async function fetchStudentGrades(studentIDs) {
 }
 
 async function recommendCourses() {
-    const gradesTextarea = document.getElementById("grades").value;
+    const gradesTextarea = document.querySelector(".grades").value;
 
     if (!gradesTextarea) {
         alert("Vui lòng nhập điểm số.");
@@ -86,7 +68,6 @@ async function recommendCourses() {
             return;
         }
 
-        // Kiểm tra nếu parsedGrades là một mảng
         if (!Array.isArray(parsedGrades)) {
             throw new Error("Định dạng dữ liệu điểm số không hợp lệ. Vui lòng nhập một mảng JSON.");
         }
@@ -95,7 +76,7 @@ async function recommendCourses() {
         const response = await fetch('http://localhost:5000/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ students: parsedGrades }), // Gửi đúng định dạng
+            body: JSON.stringify({ students: parsedGrades }), 
         });
 
         if (!response.ok) {
@@ -130,10 +111,21 @@ async function recommendCourses() {
                     : `Không có giải thích LIME cho ${student.studentID}.<br>`;
             });
         
-            document.getElementById("recommendations").innerHTML = recommendationsHTML;
-            document.getElementById("explanations").innerHTML = explanationsHTML;
-            document.getElementById("shapExplanation").innerHTML = shapExplanationHTML;
-            document.getElementById("limeExplanation").innerHTML = limeExplanationHTML;
+
+            document.querySelectorAll(".recommendations").forEach(el => {
+                el.innerHTML = recommendationsHTML;
+            });
+            document.querySelectorAll(".explanations").forEach(el => {
+                el.innerHTML = explanationsHTML;
+            });
+            document.querySelectorAll(".shapExplanation").forEach(el => {
+                el.innerHTML = shapExplanationHTML;
+            });
+            document.querySelectorAll(".limeExplanation").forEach(el => {
+                el.innerHTML = limeExplanationHTML;
+            });
+            
+
         } else {
             throw new Error("Không có dữ liệu sinh viên trả về.");
         }

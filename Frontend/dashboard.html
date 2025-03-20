@@ -18,46 +18,47 @@
         <!-- Phần dành cho admin -->
         <div id="adminSection" style="display: none;">
             <h2>Thêm Bằng Cấp</h2>
-            <input id="studentID" placeholder="Student ID">
-            <input id="certificateHash" placeholder="Certificate Hash">
+            <input class="studentID" placeholder="Student ID">
+            <input class="certificateHash" placeholder="Certificate Hash">
             <button onclick="addCertificate()">Thêm Bằng Cấp</button>
 
             <h2>Xác Minh Bằng Cấp</h2>
-            <input id="verifyStudentID" placeholder="Student ID">
-            <input id="verifyHash" placeholder="Certificate Hash">
+            <input class="verifyStudentID" placeholder="Student ID">
+            <input class="verifyHash" placeholder="Certificate Hash">
             <button onclick="verifyCertificate()">Xác Minh</button>
             <p id="verifyResult"></p>
 
             <h2>Lấy Điểm Sinh Viên</h2>
-            <input id="recommendStudentID" placeholder="Student ID">
-            <button id="fetchGradesBtn" onclick="fetchStudentGrades(document.getElementById('recommendStudentID').value.split(','))">Get Grades</button>
-            <textarea id="grades"></textarea>
+            <input class="recommendStudentID" placeholder="Student ID">
+            <button class="fetchGradesBtn" onclick="fetchStudentGrades(document.querySelector('.recommendStudentID').value.split(','))">Get Grades</button>
+            <textarea class="grades"></textarea>
 
             <h2>Gợi Ý Lộ Trình Học Tập</h2>
             <button onclick="recommendCourses()">Lấy Gợi Ý</button>
-            <div id="recommendations"></div>
-            <div id="explanations"></div>
-            <div id="shapExplanation"></div>
-            <div id="limeExplanation"></div>
+            <div class="recommendations"></div>
+            <div class="explanations"></div>
+            <div class="shapExplanation"></div>
+            <div class="limeExplanation"></div>
         </div>
 
         <!-- Phần dành cho sinh viên -->
         <div id="studentSection" style="display: none;"> 
             <h2>Xác Minh Bằng Cấp</h2>
-            <input id="verifyStudentID" placeholder="Student ID">
-            <input id="verifyHash" placeholder="Certificate Hash">
+            <input class="verifyStudentID" placeholder="Student ID">
+            <input class="verifyHash" placeholder="Certificate Hash">
             <button onclick="verifyCertificate()">Xác Minh</button>
-            <p id="verifyResult"></p>
+            <p class="verifyResult"></p>
 
             <h2>Điểm của Bạn</h2>
-            <textarea id="grades" readonly></textarea>
+            <input class="recommendStudentID" placeholder="Student ID">
+            <textarea class="grades" readonly></textarea>
 
             <h2>Gợi Ý Lộ Trình Học Tập</h2>
             <button onclick="recommendCourses()">Lấy Gợi Ý</button>
-            <div id="recommendations"></div>
-            <div id="explanations"></div>
-            <div id="shapExplanation"></div>
-            <div id="limeExplanation"></div>
+            <div class="recommendations"></div>
+            <div class="explanations"></div>
+            <div class="shapExplanation"></div>
+            <div class="limeExplanation"></div>
         </div>
     </div>
 

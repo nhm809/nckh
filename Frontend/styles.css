@@ -79,7 +79,7 @@ body {
     font-size: 12px;
     color: #666;
 }
-#fetchGradesBtn {
+.fetchGradesBtn {
     margin-left: 10px;
     padding: 5px 10px;
     background-color: #FF6600;
@@ -89,7 +89,7 @@ body {
     border-radius: 5px;
 }
 
-#fetchGradesBtn:hover {
+.fetchGradesBtn:hover {
     background-color:  #28a745;
 }
 .logout-btn {
@@ -124,4 +124,10 @@ button[onclick="logout()"] {
 
 button[onclick="logout()"]:hover {
     background-color: #cc0000;
+}
+
+
+.grades {
+    min-height: 170px;
+    min-width: 160px;
 }
