@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
             input.value = userID;
         });        
         fetchStudentGrades(userID);
+    }else {//mới thêm phần sinh viên đã tốt nghiệp
+        document.getElementById("studentSection").style.display = "none";
+        document.getElementById("adminSection").style.display = "none";
+        fetchGraduationInfo(userID);
     }
 });
 
@@ -206,3 +210,33 @@ async function addCertificate() {
         alert("Lỗi khi kết nối đến server.");
     }
 }
+//mới thêm
+async function fetchGraduationInfo(studentID) {
+    try {
+        const response = await fetch(`http://localhost:3000/get-graduation-info?studentID=${studentID}`);
+        if (!response.ok) {
+            throw new Error("Không thể lấy thông tin tốt nghiệp.");
+        }
+        
+        const data = await response.json();
+        if (data.success && data.studentInfo) {
+            const info = data.studentInfo;
+            document.querySelector(".main-content").innerHTML = `
+                <h2>Thông Tin Tốt Nghiệp</h2>
+                <p><strong>Student ID:</strong> ${info.studentID}</p>
+                <p><strong>Student Name:</strong> ${info.studentName}</p>
+                <p><strong>Certificate Name:</strong> ${info.certificateName}</p>
+                <p><strong>Issue Date:</strong> ${info.issueDate}</p>
+                <p><strong>Issued By:</strong> ${info.issuedBy}</p>
+                <p><strong>Graduation Grade:</strong> ${info.graduationGrade}</p>
+                <p><strong>Certificate Hash:</strong> ${info.certificateHash}</p>
+                <p><strong>Timestamp:</strong> ${info.timestamp}</p>
+            `;
+        } else {
+            document.querySelector(".main-content").innerHTML = "Không tìm thấy thông tin tốt nghiệp.";
+        }
+    } catch (error) {
+        console.error("Lỗi khi lấy thông tin tốt nghiệp:", error);
+        document.querySelector(".main-content").innerHTML = "Lỗi khi lấy thông tin tốt nghiệp.";
+    }
+} 
