@@ -137,7 +137,22 @@ button[onclick="logout()"]:hover {
 }
 
 
-.grades {
-    min-height: 170px;
-    min-width: 160px;
+.logo-container {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000; /* Đảm bảo logo hiển thị phía trên */
 }
+
+.logo-container img {
+    width: 200px; /* Điều chỉnh kích thước logo theo ý muốn */
+    height: auto;
+}
+#grades {
+    width: 100%;
+    min-height: 64px;
+    max-height: 80vh; /* Giới hạn tối đa */
+    overflow-y: auto; /* Hiển thị thanh cuộn nếu quá dài */
+    transition: height 0.3s ease-in-out;
+}
+
