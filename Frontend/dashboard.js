@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             input.value = userID;
         });        
         fetchStudentGrades(userID);
-    }else {//mới thêm phần sinh viên đã tốt nghiệp
+    } else {//mới thêm phần sinh viên đã tốt nghiệp - bổ sung phần này vô nhen Hiếu em
         document.getElementById("studentSection").style.display = "none";
         document.getElementById("adminSection").style.display = "none";
         fetchGraduationInfo(userID);
@@ -301,9 +301,6 @@ async function verifyCertificate() {
         resultElement.style.color = "red";
     }
 }
-
-
-
 
 //mới thêm
 async function fetchGraduationInfo(studentID) {

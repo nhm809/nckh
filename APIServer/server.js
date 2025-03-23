@@ -104,7 +104,8 @@ app.get('/get-grades', async (req, res) => {
 // ✅ Danh sách tài khoản giả lập
 const users = [
     { studentID: "S0001", password: "123" },
-    { studentID: "admin", password: "123" }
+    { studentID: "admin", password: "123" },
+    { studentID: "S1001", password: "123" }
 ];
 
 // ✅ API đăng nhập
