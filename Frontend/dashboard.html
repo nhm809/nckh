@@ -32,10 +32,21 @@
 
         <!-- Phần dành cho admin -->
         <div id="adminSection" style="display: none;">
+            <!-- Add certificate : Anh Tai -->
+             
             <h2>Thêm Bằng Cấp</h2>
-            <input class="studentID" placeholder="Student ID">
-            <input class="certificateHash" placeholder="Certificate Hash">
+            <input class="studentID" placeholder="Student ID (e.g., S0001)">
+            <input class="studentName" placeholder="Student Name (e.g., Nguyễn Văn A)">
+            <input class="certificateName" placeholder="Certificate Name (e.g., Bằng tốt nghiệp Kỹ Thuật Phần Mềm)">
+            <input class="issueDate" placeholder="Issue Date (YYYY/MM/DD, e.g., 2025/03/18)">
+            <input class="issuedBy" placeholder="Issued By (e.g., Đại học FPT)">
+            <input class="graduationGrade" placeholder="Graduation Grade (e.g., Giỏi)">
             <button onclick="addCertificate()">Thêm Bằng Cấp</button>
+            <p id="addCertificateResult"></p>
+
+            <!-- <input class="studentID" placeholder="Student ID">
+            <input class="certificateHash" placeholder="Certificate Hash">
+            <button onclick="addCertificate()">Thêm Bằng Cấp</button> -->
 
             <h2>Xác Minh Bằng Cấp</h2>
             <input class="verifyStudentID" placeholder="Student ID">

@@ -144,9 +144,129 @@ async function recommendCourses() {
 }
 
 
+// async function verifyCertificate() {
+//     const studentID = document.getElementById("verifyStudentID").value.trim();
+//     const certificateHash = document.getElementById("verifyHash").value.trim();
+//     const resultElement = document.getElementById("verifyResult");
+
+//     if (!studentID || !certificateHash) {
+//         resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
+//         resultElement.style.color = "red";
+//         return;
+//     }
+
+//     try {
+//         const response = await fetch("http://localhost:3000/verify-certificate", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ studentID, certificateHash }),
+//         });
+
+//         const data = await response.json();
+
+//         if (data.success) {
+//             resultElement.innerText = "Bằng cấp hợp lệ!";
+//             resultElement.style.color = "green";
+//         } else {
+//             resultElement.innerText = "Bằng cấp không hợp lệ!";
+//             resultElement.style.color = "red";
+//         }
+//     } catch (error) {
+//         console.error("Lỗi khi xác minh:", error);
+//         resultElement.innerText = "Lỗi khi xác minh!";
+//         resultElement.style.color = "red";
+//     }
+// }
+
+// document.addEventListener("DOMContentLoaded", function () {
+//     document.querySelector("button[onclick='verifyCertificate()']").addEventListener("click", verifyCertificate);
+// });
+
+// async function addCertificate() {
+//     const studentID = document.getElementById("studentID").value.trim();
+//     const certificateHash = document.getElementById("certificateHash").value.trim();
+
+//     if (!studentID || !certificateHash) {
+//         alert("Vui lòng nhập đầy đủ thông tin!");
+//         return;
+//     }
+
+//     try {
+//         const response = await fetch("http://localhost:3000/add-certificate", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ studentID, certificateHash })
+//         });
+
+//         const data = await response.json();
+
+//         if (response.ok) {
+//             alert(data.message || "Thêm bằng cấp thành công!");
+//         } else {
+//             alert("Thêm bằng cấp thất bại: " + (data.message || "Lỗi không xác định"));
+//         }
+//     } catch (error) {
+//         console.error("Lỗi khi thêm bằng cấp:", error);
+//         alert("Lỗi khi kết nối đến server.");
+//     }
+// }
+
+async function addCertificate() {
+    const studentID = document.querySelector(".studentID").value.trim();
+    const studentName = document.querySelector(".studentName").value.trim();
+    const certificateName = document.querySelector(".certificateName").value.trim();
+    const issueDate = document.querySelector(".issueDate").value.trim();
+    const issuedBy = document.querySelector(".issuedBy").value.trim();
+    const graduationGrade = document.querySelector(".graduationGrade").value.trim();
+    const resultElement = document.getElementById("addCertificateResult");
+
+    if (!studentID || !studentName || !certificateName || !issueDate || !issuedBy || !graduationGrade) {
+        resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
+        resultElement.style.color = "red";
+        return;
+    }
+
+    // Kiểm tra định dạng ngày (YYYY/MM/DD)
+    const datePattern = /^\d{4}\/\d{2}\/\d{2}$/;
+    if (!datePattern.test(issueDate)) {
+        resultElement.innerText = "Ngày cấp không đúng định dạng (YYYY/MM/DD, ví dụ: 2025/03/18)!";
+        resultElement.style.color = "red";
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:3000/add-certificate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                studentID,
+                studentName,
+                certificateName,
+                issueDate,
+                issuedBy,
+                graduationGrade
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            resultElement.innerText = data.message || "Thêm bằng cấp thành công!";
+            resultElement.style.color = "green";
+        } else {
+            resultElement.innerText = data.message || "Thêm bằng cấp thất bại!";
+            resultElement.style.color = "red";
+        }
+    } catch (error) {
+        console.error("Lỗi khi thêm bằng cấp:", error);
+        resultElement.innerText = "Lỗi khi kết nối đến server: " + error.message;
+        resultElement.style.color = "red";
+    }
+}
+
 async function verifyCertificate() {
-    const studentID = document.getElementById("verifyStudentID").value.trim();
-    const certificateHash = document.getElementById("verifyHash").value.trim();
+    const studentID = document.querySelector(".verifyStudentID").value.trim();
+    const certificateHash = document.querySelector(".verifyHash").value.trim();
     const resultElement = document.getElementById("verifyResult");
 
     if (!studentID || !certificateHash) {
@@ -156,60 +276,35 @@ async function verifyCertificate() {
     }
 
     try {
-        const response = await fetch("http://localhost:3000/verify-certificate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ studentID, certificateHash }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            resultElement.innerText = "Bằng cấp hợp lệ!";
-            resultElement.style.color = "green";
-        } else {
-            resultElement.innerText = "Bằng cấp không hợp lệ!";
-            resultElement.style.color = "red";
-        }
-    } catch (error) {
-        console.error("Lỗi khi xác minh:", error);
-        resultElement.innerText = "Lỗi khi xác minh!";
-        resultElement.style.color = "red";
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("button[onclick='verifyCertificate()']").addEventListener("click", verifyCertificate);
-});
-
-async function addCertificate() {
-    const studentID = document.getElementById("studentID").value.trim();
-    const certificateHash = document.getElementById("certificateHash").value.trim();
-
-    if (!studentID || !certificateHash) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
-        return;
-    }
-
-    try {
-        const response = await fetch("http://localhost:3000/add-certificate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ studentID, certificateHash })
+        const response = await fetch(`http://localhost:3000/verify-certificate?studentID=${encodeURIComponent(studentID)}&certificateHash=${encodeURIComponent(certificateHash)}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            alert(data.message || "Thêm bằng cấp thành công!");
+            if (data.isValid) {
+                resultElement.innerText = "Bằng cấp hợp lệ!";
+                resultElement.style.color = "green";
+            } else {
+                resultElement.innerText = "Bằng cấp không hợp lệ!";
+                resultElement.style.color = "red";
+            }
         } else {
-            alert("Thêm bằng cấp thất bại: " + (data.message || "Lỗi không xác định"));
+            resultElement.innerText = data.error || "Xác minh thất bại!";
+            resultElement.style.color = "red";
         }
     } catch (error) {
-        console.error("Lỗi khi thêm bằng cấp:", error);
-        alert("Lỗi khi kết nối đến server.");
+        console.error("Lỗi khi xác minh:", error);
+        resultElement.innerText = "Lỗi khi kết nối đến server: " + error.message;
+        resultElement.style.color = "red";
     }
 }
+
+
+
+
 //mới thêm
 async function fetchGraduationInfo(studentID) {
     try {
