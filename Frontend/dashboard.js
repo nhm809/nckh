@@ -305,12 +305,15 @@ async function verifyCertificate() {
 //mới thêm
 async function fetchGraduationInfo(studentID) {
     try {
+        console.log("Đang lấy thông tin tốt nghiệp cho:", studentID);
         const response = await fetch(`http://localhost:3000/get-graduation-info?studentID=${studentID}`);
+        console.log("Phản hồi từ server:",response);
         if (!response.ok) {
             throw new Error("Không thể lấy thông tin tốt nghiệp.");
         }
         
         const data = await response.json();
+        console.log("Dữ liệu nhận được:", data);
         if (data.success && data.studentInfo) {
             const info = data.studentInfo;
             document.querySelector(".main-content").innerHTML = `
