@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (userID.toLowerCase() === "admin") {
         document.getElementById("adminSection").style.display = "block";
-    } else if (/^S\d{4}$/.test(userID)) {
+    } else if (/^S\d{4}$/.test(userID) && parseInt(userID.substring(1)) >= 1 && parseInt(userID.substring(1)) <= 1000) {
         document.getElementById("studentSection").style.display = "block";
         document.querySelectorAll(".recommendStudentID").forEach(input => {
             input.value = userID;
