@@ -89,7 +89,7 @@ body {
     font-size: 12px;
     color: #666;
 }
-.fetchGradesBtn {
+#fetchGradesBtn {
     margin-left: 10px;
     padding: 5px 10px;
     background-color: #FF6600;
@@ -99,7 +99,7 @@ body {
     border-radius: 5px;
 }
 
-.fetchGradesBtn:hover {
+#fetchGradesBtn:hover {
     background-color:  #28a745;
 }
 .logout-btn {
@@ -135,8 +135,6 @@ button[onclick="logout()"] {
 button[onclick="logout()"]:hover {
     background-color: #cc0000;
 }
-
-
 .logo-container {
     position: fixed;
     top: 10px;
@@ -155,8 +153,7 @@ button[onclick="logout()"]:hover {
     overflow-y: auto; /* Hiển thị thanh cuộn nếu quá dài */
     transition: height 0.3s ease-in-out;
 }
-
 .grades {
     min-height: 168px;
     min-width: 165px;
-}   
+}
