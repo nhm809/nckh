@@ -10,9 +10,10 @@
     <div class="logo-container">
         <img src="images/Logo_FPT_Education.png" alt="FPT Education Logo">
     </div>
-       <div id="graduateSection" style="display: none;">
+            <!-- PHẦN ĐƯỢC THÊM VÀO -->
+            <div id="graduateSection" style="display: none;">
                 <h2>Thông Tin Tốt Nghiệp</h2>
-                <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p>
+                <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p> 
                 <p><strong>Student Name:</strong> <span id="gradStudentName"></span></p>
                 <p><strong>Certificate Name:</strong> <span id="gradCertificateName"></span></p>
                 <p><strong>Issue Date:</strong> <span id="gradIssueDate"></span></p>
@@ -22,64 +23,62 @@
                 <p><strong>Timestamp:</strong> <span id="gradTimestamp"></span></p>
             </div>
             
+    
     <div class="main-content">
         <h1>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h1>
-                <p id="welcomeMessage" style="border: 2px solid #ff6600; padding: 10px; border-radius: 8px; display: inline-block; background-color: #fff3e0; font-weight: bold; text-align: center;"></p>
-
+       
+        <p id="welcomeMessage" style="border: 2px solid #ff6600; padding: 10px; border-radius: 8px; display: inline-block; background-color: #fff3e0; font-weight: bold; text-align: center;"></p>
 
         <!-- Nút đăng xuất -->
         <button onclick="logout()">Đăng Xuất</button>
 
         <!-- Phần dành cho admin -->
         <div id="adminSection" style="display: none;">
-            <!-- Add certificate : Anh Tai -->
-             
             <h2>Thêm Bằng Cấp</h2>
-            <input class="studentID" placeholder="Student ID (e.g., S0001)">
+            <input class="studentID" placeholder="Student ID (e.g., S0001)"> 
             <input class="studentName" placeholder="Student Name (e.g., Nguyễn Văn A)">
-            <input class="certificateName" placeholder="Certificate Name (e.g., Bằng tốt nghiệp Kỹ Thuật Phần Mềm)">
+            <input class="certificateName" placeholder="Certificate Name (e.g., Bằng tốt nghiệp Kỹ Thuật Phần Mềm)"> </br></br>
             <input class="issueDate" placeholder="Issue Date (YYYY/MM/DD, e.g., 2025/03/18)">
             <input class="issuedBy" placeholder="Issued By (e.g., Đại học FPT)">
-            <input class="graduationGrade" placeholder="Graduation Grade (e.g., Giỏi)">
+            <input class="graduationGrade" placeholder="Graduation Grade (e.g., Giỏi)"></br></br>
             <button onclick="addCertificate()">Thêm Bằng Cấp</button>
             <p id="addCertificateResult"></p>
 
-            <!-- <input class="studentID" placeholder="Student ID">
-            <input class="certificateHash" placeholder="Certificate Hash">
-            <button onclick="addCertificate()">Thêm Bằng Cấp</button> -->
-
             <h2>Xác Minh Bằng Cấp</h2>
-            <input class="verifyStudentID" placeholder="Student ID">
-            <input class="verifyHash" placeholder="Certificate Hash">
+            <input id="verifyStudentID" placeholder="Student ID">
+            <input id="verifyHash" placeholder="Certificate Hash">
             <button onclick="verifyCertificate()">Xác Minh</button>
             <p id="verifyResult"></p>
 
             <h2>Lấy Điểm Sinh Viên</h2>
-            <input class="recommendStudentID" placeholder="Student ID">
-            <button class="fetchGradesBtn" onclick="fetchStudentGrades(document.querySelector('.recommendStudentID').value.split(','))">Get Grades</button>
-            <textarea class="grades"></textarea>
+            <input id="recommendStudentID" placeholder="Student ID">
+            <button id="fetchGradesBtn" onclick="fetchStudentGrades(document.getElementById('recommendStudentID').value.split(','))">Get Grades</button>
+            <textarea id="grades"></textarea>
 
             <h2>Gợi Ý Lộ Trình Học Tập</h2>
             <button onclick="recommendCourses()">Lấy Gợi Ý</button>
-            <div class="recommendations"></div>
-            <div class="explanations"></div>
-            <div class="shapExplanation"></div>
-            <div class="limeExplanation"></div>
+            <div id="recommendations"></div>
+            <div id="explanations"></div>
+            <div id="shapExplanation"></div>
+            <div id="limeExplanation"></div>
         </div>
 
         <!-- Phần dành cho sinh viên -->
-        <div id="studentSection" style="display: none;">            
+        <div id="studentSection" style="display: none;"> 
+           
+
             <h2>Điểm của Bạn</h2>
-            <input class="recommendStudentID" placeholder="Student ID" readonly>
-            <textarea class="grades" readonly></textarea>
+            <textarea id="grades" readonly></textarea>
 
             <h2>Gợi Ý Lộ Trình Học Tập</h2>
             <button onclick="recommendCourses()">Lấy Gợi Ý</button>
-            <div class="recommendations"></div>
-            <div class="explanations"></div>
-            <div class="shapExplanation"></div>
-            <div class="limeExplanation"></div>
+            <div id="recommendations"></div>
+            <div id="explanations"></div>
+            <div id="shapExplanation"></div>
+            <div id="limeExplanation"></div>
         </div>
+
+        
     </div>
 
     <script src="dashboard.js"></script>
