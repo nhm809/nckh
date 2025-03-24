@@ -156,3 +156,7 @@ button[onclick="logout()"]:hover {
     transition: height 0.3s ease-in-out;
 }
 
+.grades {
+    min-height: 168px;
+    min-width: 165px;
+}   
