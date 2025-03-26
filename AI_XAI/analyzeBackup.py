@@ -18,13 +18,34 @@ sys.stdout.reconfigure(encoding='utf-8')
 app = Flask(__name__)
 CORS(app)  # Kích hoạt CORS
 
-#data Courses for reccomendations
-courses_df = pd.read_csv("DataProcessor/coursesData.csv")
-courses = {
-    row['Course']: {'credits': row['Credits'], 'difficulty': row['Difficulty']}
-    for _, row in courses_df.iterrows()
-}
 
+# Dữ liệu mẫu môn học
+courses = {
+    'Math': {'credits': 3, 'difficulty': 0.8},
+    'Reading': {'credits': 3, 'difficulty': 0.6},
+    'Writing': {'credits': 3, 'difficulty': 0.7},
+    'Biology': {'credits': 3, 'difficulty': 0.5},
+    "Physics": {"credits": 4, "difficulty": 0.9},
+    "Chemistry": {"credits": 4, "difficulty": 0.7},
+    "History": {"credits": 2, "difficulty": 0.4},
+    "Computer Science": {"credits": 5, "difficulty": 0.9},
+    "Economics": {"credits": 3, "difficulty": 0.6},
+    "Psychology": {"credits": 3, "difficulty": 0.5},
+    "Philosophy": {"credits": 3, "difficulty": 0.6},
+    "Music": {"credits": 2, "difficulty": 0.3},
+    "Art": {"credits": 2, "difficulty": 0.4},
+    "Environmental Science": {"credits": 3, "difficulty": 0.6},
+    "Business": {"credits": 3, "difficulty": 0.7},
+    "Statistics": {"credits": 4, "difficulty": 0.8},
+    "Engineering": {"credits": 5, "difficulty": 0.9},
+    "Medicine": {"credits": 6, "difficulty": 1.0},
+    "Law": {"credits": 5, "difficulty": 0.9},
+    "Sociology": {"credits": 3, "difficulty": 0.5},
+    "Geography": {"credits": 3, "difficulty": 0.5},
+    "Astronomy": {"credits": 4, "difficulty": 0.8},
+    "Linguistics": {"credits": 3, "difficulty": 0.6},
+    "Political Science": {"credits": 3, "difficulty": 0.7}
+}
 
 # Hàm dự đoán xác suất cụm cho LIME
 def predict_probabilities(model, X):
