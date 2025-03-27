@@ -22,6 +22,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+// Thêm vào dashboard.js
+function toggleForm(formId) {
+    // Ẩn tất cả các form trước
+    document.querySelectorAll('.collapsible-form').forEach(form => {
+        form.style.display = 'none';
+    });
+    
+    // Hiển thị form được chọn
+    const form = document.getElementById(formId);
+    form.style.display = 'block';
+    
+    // Cuộn đến form
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Khởi tạo - ẩn tất cả form khi load trang
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.collapsible-form').forEach(form => {
+        form.style.display = 'none';
+    });
+});
+
+
 function logout() {
     localStorage.removeItem("loggedInUser");
     window.location.href = "login.html";
@@ -56,6 +79,7 @@ async function fetchStudentGrades(studentIDs) {
 
 async function recommendCourses() {
     const gradesTextarea = document.querySelector(".grades").value;
+    const recommendationsContainer = document.querySelector('.recommendations');
 
     if (!gradesTextarea) {
         alert("Vui lòng nhập điểm số.");
@@ -65,7 +89,7 @@ async function recommendCourses() {
     try {
         let parsedGrades;
         try {
-            parsedGrades = JSON.parse(gradesTextarea); // Parse dữ liệu từ textarea
+            parsedGrades = JSON.parse(gradesTextarea);
         } catch (parseError) {
             alert("Điểm số không đúng định dạng JSON. Ví dụ: [{\"studentID\": \"S0001\", \"grades\": {\"Math\": 7.2, \"Reading\": 7.2}}]");
             console.error("Lỗi parse JSON:", parseError);
@@ -76,7 +100,11 @@ async function recommendCourses() {
             throw new Error("Định dạng dữ liệu điểm số không hợp lệ. Vui lòng nhập một mảng JSON.");
         }
 
-        // Gửi dữ liệu lên backend
+        // Hiển thị loading và xóa kết quả cũ
+        recommendationsContainer.innerHTML = '<div class="loading">Đang xử lý...</div>';
+        document.querySelectorAll(".explanations, .shapExplanation, .limeExplanation")
+            .forEach(el => el.innerHTML = '');
+
         const response = await fetch('http://localhost:5000/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -90,56 +118,75 @@ async function recommendCourses() {
 
         const result = await response.json();
 
-        // Hiển thị kết quả lên giao diện
+        // Xóa nội dung loading trước khi hiển thị kết quả
+        recommendationsContainer.innerHTML = '';
+
         if (result.students && result.students.length > 0) {
-            let recommendationsHTML = "";
-            let explanationsHTML = "";
-            let shapExplanationHTML = "";
-            let limeExplanationHTML = "";
-        
             result.students.forEach(student => {
-                recommendationsHTML += student.recommendedCourses
-                    ? `<b>Gợi ý khóa học cho ${student.studentID}:</b> ${student.recommendedCourses.join(", ")}<br>`
-                    : `Không có gợi ý khóa học cho ${student.studentID}.<br>`;
-        
-                explanationsHTML += student.explanations && student.explanations.length > 0
-                    ? `<b>Giải thích cho ${student.studentID}:</b> ${student.explanations.join(", ")}<br>`
-                    : `Không có giải thích cho ${student.studentID}.<br>`;
-        
-                shapExplanationHTML += student.shapExplanation && student.shapExplanation.length > 0
-                    ? `<b>SHAP cho ${student.studentID}:</b> ${JSON.stringify(student.shapExplanation, null, 2)}<br>`
-                    : `Không có giải thích SHAP cho ${student.studentID}.<br>`;
-        
-                limeExplanationHTML += student.limeExplanation && student.limeExplanation.length > 0
-                    ? `<b>LIME cho ${student.studentID}:</b> ${student.limeExplanation.join("<br>")}<br>`
-                    : `Không có giải thích LIME cho ${student.studentID}.<br>`;
-            });
-        
+                const studentContainer = document.createElement('div');
+                studentContainer.className = 'student-result';
+                studentContainer.innerHTML = `
+                    <div class="student-header">
+                        <h3>Kết quả cho sinh viên: ${student.studentID}</h3>
+                    </div>
+                    <div class="recommendation-section">
+                        <h4>Khóa học đề xuất:</h4>
+                        <ul>
+                            ${student.recommendedCourses.map(course => `<li>${course}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="explanation-section">
+                        <h4>Giải thích:</h4>
+                        <ul>
+                            ${student.explanations.map(exp => `<li>${exp}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ${student.shapExplanation && student.shapExplanation.length > 0 ? `
+                    <div class="shap-section">
+                        <h4>Phân tích ảnh hưởng (SHAP):</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Môn học</th>
+                                    <th>Điểm số</th>
+                                    <th>Ảnh hưởng</th>
+                                    <th>Giá trị</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${student.shapExplanation.map(item => `
+                                <tr>
+                                    <td>${item.feature}</td>
+                                    <td>${item.score}</td>
+                                    <td class="impact-${item.impact === 'tích cực' ? 'positive' : 'negative'}">
+                                        ${item.impact}
+                                    </td>
+                                    <td>${item.value.toFixed(4)}</td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : '<p class="no-explanation">Không có giải thích SHAP</p>'}
+                    ${student.limeExplanation && student.limeExplanation.length > 0 ? `
+                    <div class="lime-section">
+                        <h4>Giải thích địa phương (LIME):</h4>
+                        <ul>
+                            ${student.limeExplanation.map(exp => `<li>${exp}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : '<p class="no-explanation">Không có giải thích LIME</p>'}
+                `;
 
-            document.querySelectorAll(".recommendations").forEach(el => {
-                el.innerHTML = recommendationsHTML;
+                recommendationsContainer.appendChild(studentContainer);
             });
-            document.querySelectorAll(".explanations").forEach(el => {
-                el.innerHTML = explanationsHTML;
-            });
-            document.querySelectorAll(".shapExplanation").forEach(el => {
-                el.innerHTML = shapExplanationHTML;
-            });
-            document.querySelectorAll(".limeExplanation").forEach(el => {
-                el.innerHTML = limeExplanationHTML;
-            });
-            
-
         } else {
             throw new Error("Không có dữ liệu sinh viên trả về.");
         }
     } catch (error) {
-        alert("Lỗi khi xử lý gợi ý lộ trình học tập.");
-        console.error("Chi tiết lỗi:", {
-            message: error.message,
-            stack: error.stack,
-            request: { grades: gradesTextarea },
-        });
+        recommendationsContainer.innerHTML = 
+            `<div class="error-message">Lỗi: ${error.message}</div>`;
+        console.error("Chi tiết lỗi:", error);
     }
 }
 

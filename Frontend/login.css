@@ -1,0 +1,203 @@
+/* login.css - Thiết kế hiện đại */
+
+/* Reset và font chữ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Background trang đăng nhập */
+.login-page {
+    height: 100vh;
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hiệu ứng background động */
+.login-page::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: url('images/anhnen.png') 0 0 repeat;
+    opacity: 0.1;
+    animation: bgMove 60s linear infinite;
+}
+
+@keyframes bgMove {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Logo */
+.logo-container {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    z-index: 10;
+}
+
+.logo-container img {
+    width: 180px;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.logo-container img:hover {
+    transform: scale(1.05);
+}
+
+/* Container đăng nhập */
+.login-container {
+    width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header đăng nhập */
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h2 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.login-header h3 {
+    color: #FF6600;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+/* Form đăng nhập */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form label {
+    font-size: 14px;
+    color: #34495e;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.login-form input {
+    padding: 14px 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s;
+    background-color: #f8f9fa;
+}
+
+.login-form input:focus {
+    border-color: #FF6600;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
+    background-color: white;
+}
+
+.login-form input::placeholder {
+    color: #95a5a6;
+}
+
+/* Nút đăng nhập */
+#loginBtn {
+    background-color: #FF6600;
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#loginBtn:hover {
+    background-color: #e65c00;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(230, 92, 0, 0.3);
+}
+
+#loginBtn:active {
+    transform: translateY(0);
+}
+
+/* Thông báo lỗi */
+.error {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 15px;
+    text-align: center;
+    min-height: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .login-container {
+        width: 90%;
+        padding: 30px;
+    }
+    
+    .logo-container {
+        top: 20px;
+        left: 20px;
+    }
+    
+    .logo-container img {
+        width: 120px;
+    }
+    
+    .login-header h2 {
+        font-size: 20px;
+    }
+    
+    .login-header h3 {
+        font-size: 18px;
+    }
+    
+    .login-form input,
+    #loginBtn {
+        padding: 12px;
+    }
+}
+
+/* Hiệu ứng khi load */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.login-container {
+    animation: float 6s ease-in-out infinite;
+}
