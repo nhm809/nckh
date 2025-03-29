@@ -13,21 +13,10 @@
         <img src="images/Logo_FPT_Education.png" alt="FPT Education Logo">
     </div>
     <!-- PHẦN ĐƯỢC THÊM VÀO -->
-    <div id="graduateSection" style="display: none;">
-        <h2>Thông Tin Tốt Nghiệp</h2>
-        <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p>
-        <p><strong>Student Name:</strong> <span id="gradStudentName"></span></p>
-        <p><strong>Certificate Name:</strong> <span id="gradCertificateName"></span></p>
-        <p><strong>Issue Date:</strong> <span id="gradIssueDate"></span></p>
-        <p><strong>Issued By:</strong> <span id="gradIssuedBy"></span></p>
-        <p><strong>Graduation Grade:</strong> <span id="gradGraduationGrade"></span></p>
-        <p><strong>Certificate Hash:</strong> <span id="gradCertificateHash"></span></p>
-        <p><strong>Timestamp:</strong> <span id="gradTimestamp"></span></p>
-    </div>
 
 
     <div class="main-content">
-        <h1>Hệ Thống Quản Lý Hồ Sơ Học Thuật</h1>
+        <h1>Academic Certificate Management System</h1>
 
         <p id="welcomeMessage"
             style="border: 2px solid #ff6600; padding: 10px; border-radius: 8px; display: inline-block; background-color: #fff3e0; font-weight: bold; text-align: center;">
@@ -35,44 +24,91 @@
 
         <!-- Nút đăng xuất -->
         <button onclick="logout()">Đăng Xuất</button>
+        
+        <div id="graduationSection" style="display: none;">
+            <h2>Thông Tin Tốt Nghiệp</h2>
+            <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p>
+            <p><strong>Student Name:</strong> <span id="gradStudentName"></span></p>
+            <p><strong>Certificate Name:</strong> <span id="gradCertificateName"></span></p>
+            <p><strong>Issue Date:</strong> <span id="gradIssueDate"></span></p>
+            <p><strong>Issued By:</strong> <span id="gradIssuedBy"></span></p>
+            <p><strong>Graduation Grade:</strong> <span id="gradGraduationGrade"></span></p>
+            <p><strong>Certificate Hash:</strong> <span id="gradCertificateHash"></span></p>
+            <p><strong>Timestamp:</strong> <span id="gradTimestamp"></span></p>
+        </div>
 
         <!-- Trong phần adminSection -->
         <div id="adminSection" style="display: none;">
-            <h1>Quản Lý Admin</h1>
-
             <div class="function-container">
                 <button class="function-btn" onclick="toggleForm('addCertificateForm')">
-                    <i>📝</i> Thêm Bằng Cấp
+                    Add Certificate
                 </button>
 
                 <button class="function-btn" onclick="toggleForm('verifyCertificateForm')">
-                    <i>🔍</i> Xác Minh Bằng Cấp
+                    Verify Certificate
                 </button>
 
                 <button class="function-btn" onclick="toggleForm('fetchGradesForm')">
-                    <i>📊</i> Lấy Điểm Sinh Viên
+                    Fetch Student Grades
                 </button>
             </div>
 
             <!-- Form thêm bằng cấp -->
+            <!-- <div id="addCertificateForm" class="collapsible-form">
+                <h3>Add Certificate</h3>
+                <div class="input-container">
+                    <input class="studentID" placeholder="Student ID (e.g., S0001)">
+                    <input class="studentName" placeholder="Student Name">
+                    <input class="certificateName" placeholder="Certificate Name">
+                    <input class="issueDate" placeholder="Issue Date (YYYY/MM/DD)">
+                    <input class="issuedBy" placeholder="Issued By">
+                    <input class="graduationGrade" placeholder="Graduation Grade">
+                </div>
+                
+                <button onclick="addCertificate()">Confirm</button>
+                <p id="addCertificateResult"></p>
+            </div> -->
+
             <div id="addCertificateForm" class="collapsible-form">
-                <h3>Thêm Bằng Cấp</h3>
-                <input class="studentID" placeholder="Student ID (e.g., S0001)">
-                <input class="studentName" placeholder="Student Name">
-                <input class="certificateName" placeholder="Certificate Name">
-                <input class="issueDate" placeholder="Issue Date (YYYY/MM/DD)">
-                <input class="issuedBy" placeholder="Issued By">
-                <input class="graduationGrade" placeholder="Graduation Grade">
-                <button onclick="addCertificate()">Xác Nhận Thêm</button>
+                <h3>Add Certificate</h3>
+                <div class="input-container">
+                    <input class="studentID" placeholder="Student ID (e.g., S0001)">
+                    <input class="studentName" placeholder="Student Name">
+
+                    <!-- Phần này Tài nghĩ là phải có database mà tạm thời vầy đã -->
+                    <select class="certificateName">
+                        <option value="" disabled selected>Select Certificate Name</option>
+                        <option value="Kỹ Thuật Phần Mềm">Kỹ Thuật Phần Mềm</option>
+                        <option value="Kinh Doanh Quốc Tế">Kinh Doanh Quốc Tế</option>
+                        <option value="Ngôn Ngữ Anh">Ngôn Ngữ Anh</option>
+                        <option value="Quản Trị Kinh Doanh">Quản Trị Kinh Doanh</option>
+                    </select>
+
+                    <input type="date" class="issueDate">
+
+                    <select class="issuedBy">
+                        <option value="" disabled selected>Select Issuing Institution</option>
+                        <option value="FPT University">FPT University</option>
+                    </select>
+
+                   
+                    <select class="graduationGrade">
+                        <option value="" disabled selected>Select Graduation Grade</option>
+                        <option value="Very Good">Very Good</option>
+                        <option value="Good">Good</option>
+                    </select>
+                </div>
+                
+                <button onclick="addCertificate()">Confirm</button>
                 <p id="addCertificateResult"></p>
             </div>
 
             <!-- Form xác minh bằng cấp -->
             <div id="verifyCertificateForm" class="collapsible-form">
-                <h3>Xác Minh Bằng Cấp</h3>
-                <input class="verifyStudentID" placeholder="Student ID">
-                <input class="verifyHash" placeholder="Certificate Hash">
-                <button onclick="verifyCertificate()">Xác Minh</button>
+                <h3>Verify Certificate</h3>
+                <input class="verifyStudentID" placeholder="National ID or Passport">
+                <input class="verifyHash" placeholder="Certificate Hash" style="display: none;">
+                <button onclick="verifyCertificate()">Verify</button>
                 <p id="verifyResult"></p>
             </div>
 
@@ -91,19 +127,6 @@
             </div>
         </div>
 
-
-        <!--Phần dành cho sinh viên đã tốt nghiệp-->
-        <div id="graduateSection" style="display: none;">
-            <h2>Thông Tin Tốt Nghiệp</h2>
-            <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p>
-            <p><strong>Student Name:</strong> <span id="gradStudentName"></span></p>
-            <p><strong>Certificate Name:</strong> <span id="gradCertificateName"></span></p>
-            <p><strong>Issue Date:</strong> <span id="gradIssueDate"></span></p>
-            <p><strong>Issued By:</strong> <span id="gradIssuedBy"></span></p>
-            <p><strong>Graduation Grade:</strong> <span id="gradGraduationGrade"></span></p>
-            <p><strong>Certificate Hash:</strong> <span id="gradCertificateHash"></span></p>
-            <p><strong>Timestamp:</strong> <span id="gradTimestamp"></span></p>
-        </div>
 
 
         <!-- Phần dành cho sinh viên -->

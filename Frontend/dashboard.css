@@ -47,7 +47,7 @@ h1 {
     text-align: center;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #3498db;
+    border-bottom: 2px solid #000000;
 }
 
 /* Thông báo chào mừng */
@@ -107,7 +107,7 @@ input[type="date"],
 textarea {
     width: 100%;
     padding: 12px 15px;
-    margin: 8px 0 20px;
+    margin: 1px 0 20px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
@@ -301,21 +301,6 @@ tr:hover {
     background-color: #219653;
 }
 
-#graduateSection p {
-    margin: 15px 0;
-    font-size: 16px;
-    padding: 10px;
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-#graduateSection strong {
-    color: #2c3e50;
-    min-width: 150px;
-    display: inline-block;
-}
-
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -332,8 +317,8 @@ tr:hover {
         font-size: 24px;
     }
     
-    #adminSection, #studentSection, #graduateSection {
-        padding: 25px;
+    #adminSection, #studentSection {
+        padding: 20px;
     }
     
     button {
@@ -348,3 +333,152 @@ tr:hover {
         width: 100%;
     }
 }
+
+
+/* -- Start : CSS cho Add Certificate Form  - Tai Nha Que*/ 
+
+#addCertificateForm {
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #FF6600;
+    transition: all 0.3s ease;
+}
+
+#addCertificateForm h3 {
+    color: #FF6600;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+#addCertificateForm .input-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+#addCertificateForm .input-container > *:nth-child(-n+4) {
+    flex: 1 1 calc(25% - 15px);
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    height: 44px; 
+    box-sizing: border-box; 
+}
+
+#addCertificateForm .input-container > *:nth-child(n+5) {
+    flex: 1 1 calc(50% - 15px);
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    height: 44px; 
+    box-sizing: border-box;
+}
+
+#addCertificateForm input:focus,
+#addCertificateForm select:focus {
+    border-color: #e67e22;
+    background-color: #fff;
+    outline: none;
+}
+
+#addCertificateForm select,
+#addCertificateForm input[type="date"] {
+    width: 100%;
+    appearance: menulist; 
+    cursor: pointer;
+}
+
+#addCertificateForm input[type="date"] {
+    line-height: 1; 
+    padding: 12px; 
+}
+
+#addCertificateForm input[type="date"]::-webkit-inner-spin-button,
+#addCertificateForm input[type="date"]::-webkit-calendar-picker-indicator {
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+#addCertificateForm button {
+    background-color: #FF6600;
+    width: 100%;
+    padding: 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#addCertificateForm button:hover {
+    background-color: #d35400;
+}
+
+#addCertificateForm #addCertificateResult {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    color: #2c3e50;
+}
+/* -- End : CSS cho Add Certificate Form - - Tai Nha Que*/  
+
+/* -- Start : CSS cho Verify Certificate Form */
+#verifyCertificateForm {
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #FF6600;
+    transition: all 0.3s ease;
+}
+
+#verifyCertificateForm h3 {
+    color: #FF6600;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+#verifyCertificateForm input {
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+}
+
+#verifyCertificateForm input:focus {
+    border-color: #e67e22;
+    background-color: #fff;
+}
+
+#verifyCertificateForm button {
+    background-color: #FF6600;
+    width: 100%;
+    padding: 12px;
+    font-weight: bold;
+}
+
+#verifyCertificateForm button:hover {
+    background-color: #d35400;
+}
+
+#verifyCertificateForm #verifyResult {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    color: #2c3e50;
+}
+/* -- End : CSS cho Verify Certificate Form */
