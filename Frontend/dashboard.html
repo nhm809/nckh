@@ -49,7 +49,7 @@
                 </button>
 
                 <button class="function-btn" onclick="toggleForm('fetchGradesForm')">
-                    Fetch Student Grades
+                    Get Student Grades
                 </button>
             </div>
 
@@ -114,11 +114,11 @@
 
             <!-- Form lấy điểm sinh viên -->
             <div id="fetchGradesForm" class="collapsible-form">
-                <h3>Lấy Điểm Sinh Viên</h3>
+                <h3>Get Student Grades</h3>
                 <div class="grades-container">
                     <input id="recommendStudentID" class="recommendStudentID" placeholder="Student ID">
                     <button class="fetchGradesBtn" onclick="fetchStudentGrades(document.getElementById('recommendStudentID').value.split(','))">Get Grades</button>                    <textarea class="grades"></textarea>
-                    <button class="recommend-btn" onclick="recommendCourses()">Lấy Gợi Ý</button>
+                    <button class="recommend-btn" onclick="recommendCourses()">Get Recommendations</button>
                     <div class="recommendations"></div>
                     <div class="explanations"></div>
                     <div class="shapExplanation"></div>
@@ -133,11 +133,11 @@
         <div id="studentSection" style="display: none;">
 
 
-            <h2>Điểm của Bạn</h2>
+            <h2>Your Grades</h2>
             <textarea class="grades" readonly></textarea>
 
-            <h2>Gợi Ý Lộ Trình Học Tập</h2>
-            <button onclick="recommendCourses()">Lấy Gợi Ý</button>
+            <h2>Study Path Recommendation</h2>
+            <button onclick="recommendCourses()">Get Recommendations</button>
             <div class="recommendations"></div>
             <div class="explanations"></div>
             <div class="shapExplanation"></div>
