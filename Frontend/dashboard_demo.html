@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+    <div class="logo-container">
+        <img src="images/Logo_FPT_Education.png" alt="FPT Education Logo">
+    </div>
+    <!-- PHẦN ĐƯỢC THÊM VÀO -->
+
+
+    <div class="main-content">
+        <h1>Academic Certificate Management System</h1>
+
+        <p id="welcomeMessage"
+            style="border: 2px solid #ff6600; padding: 10px; border-radius: 8px; display: inline-block; background-color: #fff3e0; font-weight: bold; text-align: center;">
+        </p>
+
+        <!-- Nút đăng xuất -->
+        <button onclick="logout()">LogOut</button>
+        
+        <div id="graduationSection" style="display: none;">
+            <h2>Thông Tin Tốt Nghiệp</h2>
+            <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p>
+            <p><strong>Student Name:</strong> <span id="gradStudentName"></span></p>
+            <p><strong>Certificate Name:</strong> <span id="gradCertificateName"></span></p>
+            <p><strong>Issue Date:</strong> <span id="gradIssueDate"></span></p>
+            <p><strong>Issued By:</strong> <span id="gradIssuedBy"></span></p>
+            <p><strong>Graduation Grade:</strong> <span id="gradGraduationGrade"></span></p>
+            <p><strong>Certificate Hash:</strong> <span id="gradCertificateHash"></span></p>
+            <p><strong>Timestamp:</strong> <span id="gradTimestamp"></span></p>
+        </div>
+
+        <!-- Trong phần adminSection -->
+        <div id="adminSection" style="display: none;">
+            <div class="function-container">
+                <button class="function-btn" onclick="toggleForm('addCertificateForm')">
+                    Add Certificate
+                </button>
+
+                <button class="function-btn" onclick="toggleForm('verifyCertificateForm')">
+                    Verify Certificate
+                </button>
+
+                <button class="function-btn" onclick="toggleForm('fetchGradesForm')">
+                    Fetch Student Grades
+                </button>
+            </div>
+
+            <!-- Form thêm bằng cấp -->
+            <!-- <div id="addCertificateForm" class="collapsible-form">
+                <h3>Add Certificate</h3>
+                <div class="input-container">
+                    <input class="studentID" placeholder="Student ID (e.g., S0001)">
+                    <input class="studentName" placeholder="Student Name">
+                    <input class="certificateName" placeholder="Certificate Name">
+                    <input class="issueDate" placeholder="Issue Date (YYYY/MM/DD)">
+                    <input class="issuedBy" placeholder="Issued By">
+                    <input class="graduationGrade" placeholder="Graduation Grade">
+                </div>
+                
+                <button onclick="addCertificate()">Confirm</button>
+                <p id="addCertificateResult"></p>
+            </div> -->
+
+            <div id="addCertificateForm" class="collapsible-form">
+                <h3>Add Certificate</h3>
+                <div class="input-container">
+                    <input class="studentID" placeholder="Student ID (e.g., S0001)">
+                    <input class="studentName" placeholder="Student Name">
+
+                    <!-- Phần này Tài nghĩ là phải có database mà tạm thời vầy đã -->
+                    <select class="certificateName">
+                        <option value="" disabled selected>Select Certificate Name</option>
+                        <option value="Kỹ Thuật Phần Mềm">Kỹ Thuật Phần Mềm</option>
+                        <option value="Kinh Doanh Quốc Tế">Kinh Doanh Quốc Tế</option>
+                        <option value="Ngôn Ngữ Anh">Ngôn Ngữ Anh</option>
+                        <option value="Quản Trị Kinh Doanh">Quản Trị Kinh Doanh</option>
+                    </select>
+
+                    <input type="date" class="issueDate">
+
+                    <select class="issuedBy">
+                        <option value="" disabled selected>Select Issuing Institution</option>
+                        <option value="FPT University">FPT University</option>
+                    </select>
+
+                   
+                    <select class="graduationGrade">
+                        <option value="" disabled selected>Select Graduation Grade</option>
+                        <option value="Very Good">Very Good</option>
+                        <option value="Good">Good</option>
+                    </select>
+                </div>
+                
+                <button onclick="addCertificate()">Confirm</button>
+                <p id="addCertificateResult"></p>
+            </div>
+
+            <!-- Form xác minh bằng cấp -->
+            <div id="verifyCertificateForm" class="collapsible-form">
+                <h3>Verify Certificate</h3>
+                <input class="verifyStudentID" placeholder="National ID or Passport">
+                <input class="verifyHash" placeholder="Certificate Hash" style="display: none;">
+                <button onclick="verifyCertificate()">Verify</button>
+                <p id="verifyResult"></p>
+            </div>
+
+              <!-- Form lấy điểm sinh viên -->
+              <div id="fetchGradesForm" class="collapsible-form">
+                <h3>Lấy Điểm Sinh Viên</h3>
+                <div class="grades-container">
+                    <input id="recommendStudentID" class="recommendStudentID" placeholder="Nhập ID Sinh Viên, cách nhau bởi dấu phẩy (,)">
+<button class="fetchGradesBtn" onclick="handleAdminInput()">Get Grades</button> 
+<div id="gradesTableContainer"></div>
+
+                      
+                    <div id="gradesTableContainer"></div>                 
+                    <button class="recommend-btn" onclick="recommendCourses()">Lấy Gợi Ý</button>
+                    <div class="recommendations"></div>
+                    <div class="explanations"></div>
+                    <div class="shapExplanation"></div>
+                    <div class="limeExplanation"></div>
+                </div>
+            </div>
+        </div>
+
+        
+        <!-- Form lấy điểm sinh viên (code ban đầu)
+        <div id="fetchGradesForm" class="collapsible-form">
+            <h3>Lấy Điểm Sinh Viên</h3>
+            <div class="grades-container">
+                <input id="recommendStudentID" class="recommendStudentID" placeholder="Student ID">
+                <button class="fetchGradesBtn" onclick="fetchStudentGrades(document.getElementById('recommendStudentID').value.split(','))">Get Grades</button>                    <textarea class="grades"></textarea>
+                <button class="recommend-btn" onclick="recommendCourses()">Lấy Gợi Ý</button>
+                <div class="recommendations"></div>
+                <div class="explanations"></div>
+                <div class="shapExplanation"></div>
+                <div class="limeExplanation"></div>
+            </div>
+        </div>
+    </div> -->
+
+
+
+    <!-- Phần dành cho sinh viên (code ban đầu)
+    <div id="studentSection" style="display: none;">
+
+
+        <h2>Điểm của Bạn</h2>
+        <textarea class="grades" readonly></textarea>
+
+        <h2>Gợi Ý Lộ Trình Học Tập</h2>
+        <button onclick="recommendCourses()">Lấy Gợi Ý</button>
+        <div class="recommendations"></div>
+        <div class="explanations"></div>
+        <div class="shapExplanation"></div>
+        <div class="limeExplanation"></div>
+    </div> -->
+
+
+
+
+   <!-- Phần dành cho sinh viên -->
+<div id="studentSection" style="display: none; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; width: 400px;">
+    <h3 style="color: #FF6A00;">Profile university students</h3>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;">Profile</th>
+            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;"></th>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">StudentID</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">S0001</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Semester</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                <select id="semesterSelect" onchange="updateSemester()">
+                    <option value="1"> 1</option>
+                    <option value="2"> 2</option>
+                    <option value="3"> 3</option>
+                    <option value="4"> 4</option>
+                    <option value="5"> 5</option>
+                    <option value="6"> 6</option>
+                    <option value="7"> 7</option>
+                    <option value="8"> 8</option>
+                    <option value="9"> 9</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;">Subject</th>
+            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;">Grades</th>
+        </tr>
+        <tbody id="subjectTable">
+            <!-- Nội dung động sẽ được tạo ở đây -->
+        </tbody>
+    </table>
+</div>
+
+<h2>Suggested Learning Path</h2>
+<button onclick="recommendCourses()">Get Hint</button>
+<div class="recommendations"></div>
+<div class="explanations"></div>
+<div class="shapExplanation"></div>
+<div class="limeExplanation"></div>
+
+
+
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
