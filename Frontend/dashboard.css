@@ -301,6 +301,21 @@ tr:hover {
     background-color: #219653;
 }
 
+#graduateSection p {
+    margin: 15px 0;
+    font-size: 16px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#graduateSection strong {
+    color: #2c3e50;
+    min-width: 150px;
+    display: inline-block;
+}
+
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -317,8 +332,8 @@ tr:hover {
         font-size: 24px;
     }
     
-    #adminSection, #studentSection {
-        padding: 20px;
+    #adminSection, #studentSection, #graduateSection {
+        padding: 25px;
     }
     
     button {
