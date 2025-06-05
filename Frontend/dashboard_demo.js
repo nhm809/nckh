@@ -23,6 +23,46 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+function toggleExplanations1() {
+    const box1 = document.getElementById('box1');
+    const box2 = document.getElementById('box2');
+    const button = document.getElementById('toggle1');
+
+    const isHidden = box1.classList.contains('hidden') && box2.classList.contains('hidden');
+
+    if (isHidden) {
+        box1.classList.remove('hidden');
+        box2.classList.remove('hidden');
+        button.textContent = 'Hide Explanations';
+    } else {
+        box1.classList.add('hidden');
+        box2.classList.add('hidden');
+        button.textContent = 'Show Explanations';
+    }
+}
+
+
+function toggleExplanations2() {
+    const box3 = document.getElementById('box3');
+    const box4 = document.getElementById('box4');
+    const button = document.getElementById('toggle2');
+
+    const isHidden = box3.classList.contains('hidden') && box4.classList.contains('hidden');
+
+    if (isHidden) {
+        box3.classList.remove('hidden');
+        box4.classList.remove('hidden');
+        button.textContent = 'Hide Explanations';
+    } else {
+        box3.classList.add('hidden');
+        box4.classList.add('hidden');
+        button.textContent = 'Show Explanations';
+    }
+}
+
+
+
+
 // Thêm vào dashboard.js
 function toggleForm(formId) {
     // Ẩn tất cả các form trước

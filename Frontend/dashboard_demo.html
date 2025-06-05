@@ -153,7 +153,7 @@
                             </ul>
                         </div>
                     
-                        <div class="box">
+                        <div id="box1" class="hidden">
                             <b>Explanations:</b>
                             <ul>
                                 <li>This section provides a brief justification for the recommendation:
@@ -168,7 +168,7 @@
                             </ul>
                         </div>
                         
-                        <div class="box">
+                        <div id="box2" class="hidden">
                             <b>SHAP Analysis & LIME Explanation:</b>
                             <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
                                 <tr>
@@ -198,32 +198,8 @@
                             </table>
                         </div>
                         
-                        <!-- <div class="box">
-                            <b>LIME Explanation:</b>
-                            <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>LIME Weight</th>
-                                    <th>Impact on "Strong" Prediction</th>
-                                </tr>
-                                <tr>
-                                    <td>English</td>
-                                    <td>0.31</td>
-                                    <td>Very High</td>
-                                </tr>
-                                <tr>
-                                    <td>IT</td>
-                                    <td>0.20</td>
-                                    <td>High</td>
-                                </tr>
-                                <tr>
-                                    <td>Physical Education</td>
-                                    <td>0.15</td>
-                                    <td>Medium</td>
-                                </tr>
-                            </table>
-                        </div>
-                         -->
+                        <button id="toggle1" onclick="toggleExplanations1()">Show Explanations</button>
+
 
                     </div>
 
@@ -274,7 +250,7 @@
                             </ul>
                         </div>
                         
-                        <div class="box">
+                        <div id="box3" class="hidden">
                             <b>Explanations:</b>
                             <ul>
                                 <li>The <b>SHAP analysis</b> shows that Data Science (-0.41) and Algorithms (-0.38) have the most negative impact on academic performance.</li>
@@ -286,7 +262,7 @@
                         </div>
                         
                         
-                        <div class="box">
+                        <div id="box4" class="hidden">
                             <b>SHAP Analysis & LIME Explanation:</b>
                             <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
                                 <tr>
@@ -316,32 +292,7 @@
                             </table>
                         </div>
                         
-                        <!-- <div class="box">
-                            <b>LIME Explanation:</b>
-                            <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>LIME Weight</th>
-                                    <th>Impact on "Strong" Prediction</th>
-                                </tr>
-                                <tr>
-                                    <td>Programming</td>
-                                    <td>0.18</td>
-                                    <td>High</td>
-                                </tr>
-                                <tr>
-                                    <td>Data Science</td>
-                                    <td>-0.25</td>
-                                    <td>Low</td>
-                                </tr>
-                                <tr>
-                                    <td>Algorithms</td>
-                                    <td>-0.22</td>
-                                    <td>Low</td>
-                                </tr>
-                            </table>
-                        </div> -->
-                        
+                       <button id="toggle2" onclick="toggleExplanations2()">Show Explanations</button>
 
                     </div>
 

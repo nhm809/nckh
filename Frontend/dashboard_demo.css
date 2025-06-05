@@ -538,7 +538,7 @@ tr:hover {
 }
 
 /* Recommendation & Explanation Boxes */
-.box {
+.box, #box1, #box2, #box3, #box4 {
     background: #eef5ff;
     padding: 15px;
     margin-top: 15px;
@@ -546,16 +546,16 @@ tr:hover {
     border-radius: 5px;
 }
 
-.box b {
+.box b, #box1 b, #box2 b, #box3 b, #box4 b {
     color: #007bff;
 }
 
-.box ul {
+.box ul, #box1 ul, #box2 ul, #box3 ul, #box4 ul {
     margin: 10px 0 0;
     padding-left: 20px;
 }
 
-.box li {
+.box li, #box1 li, #box2 li, #box3 li, #box4 li {
     margin-bottom: 5px;
     line-height: 1.5;
 }
@@ -563,6 +563,12 @@ tr:hover {
 .rcm {
     margin: 30px;
 }
+
+.hidden {
+    display: none;
+}
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
