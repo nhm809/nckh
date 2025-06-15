@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "login.html"; // Nếu chưa đăng nhập, chuyển về login
     }
 
-    document.getElementById("welcomeMessage").innerText = `Welcome, ${userID}`; //   Hiển thị chào mừng
+    document.getElementById("welcomeMessage").innerText = `Xin chào, ${userID}`; //   Hiển thị chào mừng
 
     if (userID.toLowerCase() === "admin") {
         document.getElementById("adminSection").style.display = "block";
@@ -59,18 +59,18 @@ async function fetchStudentGrades(studentIDs) {
                 
         const response = await fetch(`http://localhost:3000/get-grades?studentIDs=${studentIDs.join(',')}`);
         if (!response.ok) {
-            throw new Error("Student scores cannot be taken.");
+            throw new Error("Không thể lấy điểm sinh viên.");
         }
 
         const result = await response.json();
-        console.log("Data received:", result);
+        console.log("Dữ liệu nhận được:", result);
 
         if (result.students) {
             document.querySelectorAll(".grades").forEach(textarea => {
                 textarea.value = JSON.stringify(result.students, null, 2);
             });
         } else {
-            throw new Error("Invalid data.");
+            throw new Error("Dữ liệu không hợp lệ.");
         }
     } catch (error) {
         alert(error.message);
@@ -82,7 +82,7 @@ async function recommendCourses() {
     const recommendationsContainer = document.querySelector('.recommendations');
 
     if (!gradesTextarea) {
-        alert("Please enter scores.");
+        alert("Vui lòng nhập điểm số.");
         return;
     }
 
@@ -91,13 +91,13 @@ async function recommendCourses() {
         try {
             parsedGrades = JSON.parse(gradesTextarea);
         } catch (parseError) {
-            alert("The score is not in the correct JSON format. For example: [{\"studentID\": \"S0001\", \"grades\": {\"Math\": 7.2, \"Reading\": 7.2}}]");
-            console.error("JSON parsing error:", parseError);
+            alert("Điểm số không đúng định dạng JSON. Ví dụ: [{\"studentID\": \"S0001\", \"grades\": {\"Math\": 7.2, \"Reading\": 7.2}}]");
+            console.error("Lỗi parse JSON:", parseError);
             return;
         }
 
         if (!Array.isArray(parsedGrades)) {
-            throw new Error("Invalid score data format. Please enter a JSON array.");
+            throw new Error("Định dạng dữ liệu điểm số không hợp lệ. Vui lòng nhập một mảng JSON.");
         }
 
         // Hiển thị loading và xóa kết quả cũ
@@ -113,7 +113,7 @@ async function recommendCourses() {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Error from server: ${response.status} - ${errorText}`);
+            throw new Error(`Lỗi từ server: ${response.status} - ${errorText}`);
         }
 
         const result = await response.json();
@@ -127,30 +127,30 @@ async function recommendCourses() {
                 studentContainer.className = 'student-result';
                 studentContainer.innerHTML = `
                     <div class="student-header">
-                        <h3>Results for students: ${student.studentID}</h3>
+                        <h3>Kết quả cho sinh viên: ${student.studentID}</h3>
                     </div>
                     <div class="recommendation-section">
-                        <h4>Recommended courses:</h4>
+                        <h4>Khóa học đề xuất:</h4>
                         <ul>
                             ${student.recommendedCourses.map(course => `<li>${course}</li>`).join('')}
                         </ul>
                     </div>
                     <div class="explanation-section">
-                        <h4>Explaination:</h4>
+                        <h4>Giải thích:</h4>
                         <ul>
                             ${student.explanations.map(exp => `<li>${exp}</li>`).join('')}
                         </ul>
                     </div>
                     ${student.shapExplanation && student.shapExplanation.length > 0 ? `
                     <div class="shap-section">
-                        <h4>Impact analysis (SHAP):</h4>
+                        <h4>Phân tích ảnh hưởng (SHAP):</h4>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Subject</th>
-                                    <th>Score</th>
-                                    <th>Affect</th>
-                                    <th>Value</th>
+                                    <th>Môn học</th>
+                                    <th>Điểm số</th>
+                                    <th>Ảnh hưởng</th>
+                                    <th>Giá trị</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -158,7 +158,7 @@ async function recommendCourses() {
                                 <tr>
                                     <td>${item.feature}</td>
                                     <td>${item.score}</td>
-                                    <td class="impact-${item.impact === 'positive' ? 'positive' : 'negative'}">
+                                    <td class="impact-${item.impact === 'tích cực' ? 'positive' : 'negative'}">
                                         ${item.impact}
                                     </td>
                                     <td>${item.value.toFixed(4)}</td>
@@ -167,26 +167,26 @@ async function recommendCourses() {
                             </tbody>
                         </table>
                     </div>
-                    ` : '<p class="no-explanation">There is no SHAP explanation</p>'}
+                    ` : '<p class="no-explanation">Không có giải thích SHAP</p>'}
                     ${student.limeExplanation && student.limeExplanation.length > 0 ? `
                     <div class="lime-section">
-                        <h4>Local Explanation (LIME):</h4>
+                        <h4>Giải thích địa phương (LIME):</h4>
                         <ul>
                             ${student.limeExplanation.map(exp => `<li>${exp}</li>`).join('')}
                         </ul>
                     </div>
-                    ` : '<p class="no-explanation">No LIME explanation available</p>'}
+                    ` : '<p class="no-explanation">Không có giải thích LIME</p>'}
                 `;
 
                 recommendationsContainer.appendChild(studentContainer);
             });
         } else {
-            throw new Error("No student data returned.");
+            throw new Error("Không có dữ liệu sinh viên trả về.");
         }
     } catch (error) {
         recommendationsContainer.innerHTML = 
-            `<div class="error-message">Error: ${error.message}</div>`;
-    console.error("Error details:", error);
+            `<div class="error-message">Lỗi: ${error.message}</div>`;
+        console.error("Chi tiết lỗi:", error);
     }
 }
 
@@ -262,25 +262,31 @@ async function addCertificate() {
     const studentID = document.querySelector(".studentID").value.trim();
     const studentName = document.querySelector(".studentName").value.trim();
     const certificateName = document.querySelector(".certificateName").value.trim();
-    const issueDate = document.querySelector(".issueDate").value.trim();
+    const issueDateRaw = document.querySelector(".issueDate").value.trim();
     const issuedBy = document.querySelector(".issuedBy").value.trim();
     const graduationGrade = document.querySelector(".graduationGrade").value.trim();
     const resultElement = document.getElementById("addCertificateResult");
 
+    // Chuyển đổi từ YYYY-MM-DD sang DD/MM/YYYY
+    let issueDate = "";
+    if (issueDateRaw) {
+        const [year, month, day] = issueDateRaw.split("-");
+        issueDate = `${day}/${month}/${year}`;
+    }
+
     if (!studentID || !studentName || !certificateName || !issueDate || !issuedBy || !graduationGrade) {
-        resultElement.innerText = "Please fill in all the required fields!";
+        resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
         resultElement.style.color = "red";
         return;
     }
 
-    // Check date format (YYYY-MM-DD)
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    // Kiểm tra định dạng ngày (DD/MM/YYYY)
+    const datePattern = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!datePattern.test(issueDate)) {
-        resultElement.innerText = "Issue date format is incorrect (YYYY-MM-DD, e.g., 2025-03-18)!";
+        resultElement.innerText = "Ngày cấp không đúng định dạng (DD/MM/YYYY, ví dụ: 18/03/2025)!";
         resultElement.style.color = "red";
         return;
     }
-
 
     try {
         const response = await fetch("http://localhost:3000/add-certificate", {
@@ -299,19 +305,15 @@ async function addCertificate() {
         const data = await response.json();
 
         if (response.ok) {
-            let message = data.message || "Certificate added successfully!";
-            if (data.certificateHash) {
-                message += `\nCertificate Hash: ${data.certificateHash}`;
-            }
-            resultElement.innerText = message;
+            resultElement.innerText = data.message || "Thêm bằng cấp thành công!";
             resultElement.style.color = "green";
         } else {
-            resultElement.innerText = data.message || "Failed to add certificate!";
+            resultElement.innerText = data.message || "Thêm bằng cấp thất bại!";
             resultElement.style.color = "red";
         }
     } catch (error) {
-        console.error("Error adding certificate:", error);
-        resultElement.innerText = "Error connecting to server: " + error.message;
+        console.error("Lỗi khi thêm bằng cấp:", error);
+        resultElement.innerText = "Lỗi khi kết nối đến server: " + error.message;
         resultElement.style.color = "red";
     }
 }
@@ -322,18 +324,13 @@ async function verifyCertificate() {
     const resultElement = document.getElementById("verifyResult");
 
     if (!studentID || !certificateHash) {
-        resultElement.innerText = "Please enter both Student ID and Certificate Hash.";
+        resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
         resultElement.style.color = "red";
         return;
     }
 
     try {
-        const query = new URLSearchParams({
-            studentID: studentID,
-            certificateHash: certificateHash
-        });
-
-        const response = await fetch(`http://localhost:3000/verify-certificate-full?${query.toString()}`, {
+        const response = await fetch(`http://localhost:3000/verify-certificate?studentID=${encodeURIComponent(studentID)}&certificateHash=${encodeURIComponent(certificateHash)}`, {
             method: "GET",
             headers: { "Content-Type": "application/json" }
         });
@@ -342,40 +339,39 @@ async function verifyCertificate() {
 
         if (response.ok) {
             if (data.isValid) {
-                resultElement.innerText = "✅ Certificate is valid!";
+                resultElement.innerText = "Bằng cấp hợp lệ!";
                 resultElement.style.color = "green";
             } else {
-                resultElement.innerText = "❌ Certificate is invalid!";
+                resultElement.innerText = "Bằng cấp không hợp lệ!";
                 resultElement.style.color = "red";
             }
         } else {
-            resultElement.innerText = data.error || "Verification failed.";
+            resultElement.innerText = data.error || "Xác minh thất bại!";
             resultElement.style.color = "red";
         }
     } catch (error) {
-        console.error("Error verifying certificate:", error);
-        resultElement.innerText = "Server error: " + error.message;
+        console.error("Lỗi khi xác minh:", error);
+        resultElement.innerText = "Lỗi khi kết nối đến server: " + error.message;
         resultElement.style.color = "red";
     }
 }
 
-
-// Newly added
+//mới thêm
 async function fetchGraduationInfo(studentID) {
     try {
-        console.log("Fetching graduation information for:", studentID);
+        console.log("Đang lấy thông tin tốt nghiệp cho:", studentID);
         const response = await fetch(`http://localhost:3000/get-graduation-info?studentID=${studentID}`);
-        console.log("Response from server:", response);
+        console.log("Phản hồi từ server:",response);
         if (!response.ok) {
-            throw new Error("Unable to fetch graduation information.");
+            throw new Error("Không thể lấy thông tin tốt nghiệp.");
         }
-
+        
         const data = await response.json();
-        console.log("Received data:", data);
+        console.log("Dữ liệu nhận được:", data);
         if (data.success && data.studentInfo) {
             const info = data.studentInfo;
             document.querySelector(".main-content").innerHTML = `
-                <h2>Graduation Information</h2>
+                <h2>Thông Tin Tốt Nghiệp</h2>
                 <p><strong>Student ID:</strong> ${info.studentID}</p>
                 <p><strong>Student Name:</strong> ${info.studentName}</p>
                 <p><strong>Certificate Name:</strong> ${info.certificateName}</p>
@@ -386,10 +382,10 @@ async function fetchGraduationInfo(studentID) {
                 <p><strong>Timestamp:</strong> ${info.timestamp}</p>
             `;
         } else {
-            document.querySelector(".main-content").innerHTML = "No graduation information found.";
+            document.querySelector(".main-content").innerHTML = "Không tìm thấy thông tin tốt nghiệp.";
         }
     } catch (error) {
-        console.error("Error fetching graduation info:", error);
-        document.querySelector(".main-content").innerHTML = "Error fetching graduation information.";
+        console.error("Lỗi khi lấy thông tin tốt nghiệp:", error);
+        document.querySelector(".main-content").innerHTML = "Lỗi khi lấy thông tin tốt nghiệp.";
     }
-}
+} 
