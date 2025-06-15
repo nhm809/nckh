@@ -115,65 +115,133 @@ app.post("/login", (req, res) => {
     user ? res.json({ message: "Đăng nhập thành công" }) : res.status(401).json({ message: "Sai tài khoản hoặc mật khẩu" });
 });
 
+
+function toBytes32(str) {
+  const buffer = Buffer.alloc(32); // Tạo buffer rỗng 32 byte
+  const byteStr = Buffer.from(str, 'utf8');
+
+  if (byteStr.length > 32) {
+    throw new Error(`"${str}" is too long for bytes32`);
+  }
+
+  byteStr.copy(buffer); // Copy nội dung vào buffer
+  return '0x' + buffer.toString('hex');
+}
+
+
+
 // ✅ API thêm bằng cấp vào Blockchain
 app.post('/add-certificate', async (req, res) => {
     const { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade } = req.body;
-    if (!studentID || !graduationGrade || !studentName || !certificateName || !issueDate || !issuedBy) {
-        return res.status(400).json({ error: "Thiếu thông tin" });
+
+    if (!studentID || !studentName || !certificateName || !issueDate || !issuedBy || !graduationGrade) {
+        return res.status(400).json({ error: "Missing information" });
     }
 
-    // Chuyển đổi issueDate từ YYYY/MM/DD thành timestamp
-    const issueDateUint = moment(issueDate, "YYYY/MM/DD").unix(); 
+    // Convert issueDate from YYYY/MM/DD to UNIX timestamp (uint)
+    const issueDateUint = moment(issueDate, "YYYY/MM/DD").unix();
     if (isNaN(issueDateUint)) {
-        return res.status(400).json({ error: "Định dạng ngày không hợp lệ. Dùng YYYY/MM/DD" });
+        return res.status(400).json({ error: "Invalid date format. Use YYYY/MM/DD" });
     }
 
     try {
         const accounts = await web3.eth.getAccounts();
 
+        // ✅ Convert to bytes32 with padding
+        const studentIDHex = toBytes32(studentID);
+        const studentNameHex = toBytes32(studentName);
+        const certificateNameHex = toBytes32(certificateName);
+        const issuedByHex = toBytes32(issuedBy);
+        const graduationGradeHex = toBytes32(graduationGrade);
+
+        // ✅ Tạo certificateHash trước khi gửi contract
+        const certificateHash = web3.utils.soliditySha3(
+            studentNameHex,
+            certificateNameHex,
+            issueDateUint,
+            issuedByHex,
+            graduationGradeHex
+        );
+
+        // Estimate gas 
         let estimatedGas;
         try {
             estimatedGas = await contract.methods.addCertificate(
-                studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade
+                studentIDHex, studentNameHex, certificateNameHex, issueDateUint, issuedByHex, graduationGradeHex
             ).estimateGas({ from: accounts[0] });
         } catch (error) {
-            console.error("Lỗi khi ước tính gas:", error);
-            return res.status(500).json({ error: "Lỗi khi ước tính gas", details: error.toString() });
+            console.error("Error when estimating gas:", error);
+            return res.status(500).json({ error: "Error when estimating gas", details: error.toString() });
         }
+
+        // Gửi transaction
         const tx = await contract.methods.addCertificate(
-            studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade
+            studentIDHex, studentNameHex, certificateNameHex, issueDateUint, issuedByHex, graduationGradeHex
         ).send({ from: accounts[0], gas: estimatedGas });
 
-        res.status(200).json({ message: "Bằng cấp đã thêm thành công", txHash: tx.transactionHash });
+        // ✅ Trả về certificateHash kèm txHash
+        res.status(200).json({
+            message: "Degree added successfully",
+            txHash: tx.transactionHash,
+            certificateHash: certificateHash
+        });
+
     } catch (error) {
-        console.error("Lỗi Blockchain:", error);
-        res.status(500).json({ message: "Lỗi máy chủ", error: error.toString() });
+        console.error("Blockchain error:", error);
+        res.status(500).json({ message: "Server error", error: error.toString() });
     }
 });
+
+
+
+
+
 
 // ✅ API xác minh bằng cấp trên Blockchain
 app.get('/verify-certificate', async (req, res) => {
+    const { studentID } = req.query;
+
+    if (!studentID) {
+        return res.status(400).json({ error: "Missing studentID" });
+    }
+
+
+    try {
+        const studentIDBytes32 = toBytes32(studentID);
+
+        const isValid = await contract.methods.verifyCertificate(studentIDBytes32).call();
+
+        res.status(200).json({ isValid });
+    } catch (error) {
+        console.error("Blockchain error:", error);
+        res.status(500).json({ error: "Blockchain error", details: error.message });
+    }
+});
+
+
+app.get('/verify-certificate-full', async (req, res) => {
     const { studentID, certificateHash } = req.query;
+
     if (!studentID || !certificateHash) {
-        return res.status(400).json({ error: "Thiếu thông tin studentID hoặc certificateHash" });
+        return res.status(400).json({ error: "Missing studentID or certificateHash" });
     }
 
     try {
-        const existingStudentID = await contract.methods.hashToStudent(certificateHash).call();
-        if (existingStudentID && existingStudentID !== studentID) {
-            return res.status(400).json({
-                error: "Certificate hash đã được sử dụng bởi một sinh viên khác",
-                existingStudentID: existingStudentID
-            });
-        }
-
-        const isValid = await contract.methods.verifyCertificate(studentID, certificateHash).call();
+        const studentIDBytes32 = web3.utils.padRight(web3.utils.asciiToHex(studentID), 66);
+        const isValid = await contract.methods.verifyCertificate(studentIDBytes32, certificateHash).call();
         res.status(200).json({ isValid });
     } catch (error) {
-        console.error("Lỗi Blockchain:", error);
-        res.status(500).json({ error: "Lỗi Blockchain", details: error.message });
+        console.error("Blockchain error:", error);
+        res.status(500).json({ error: "Blockchain error", details: error.message });
     }
 });
+
+
+
+
+
+
+
 
 app.get('/get-certificate', async (req, res) => {
     const { studentID } = req.query;

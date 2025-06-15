@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "login.html"; // Nếu chưa đăng nhập, chuyển về login
     }
 
-    document.getElementById("welcomeMessage").innerText = `Hi ${userID}, Have a nice day!`; //   Hiển thị chào mừng
+    document.getElementById("welcomeMessage").innerText = `Welcome, ${userID}`; //   Hiển thị chào mừng
 
     if (userID.toLowerCase() === "admin") {
         document.getElementById("adminSection").style.display = "block";
@@ -15,10 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
             input.value = userID;
         });        
         fetchStudentGrades(userID);
-    } else {
+    } else {//mới thêm phần sinh viên đã tốt nghiệp - bổ sung phần này vô nhen Hiếu em
         document.getElementById("studentSection").style.display = "none";
         document.getElementById("adminSection").style.display = "none";
-        document.getElementById("graduationSection").style.display = "block";
         fetchGraduationInfo(userID);
     }
 });
@@ -38,168 +37,359 @@ function toggleForm(formId) {
     form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// Khởi tạo - ẩn tất cả form khi load trang
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.collapsible-form').forEach(form => {
+        form.style.display = 'none';
+    });
+});
+
 
 function logout() {
     localStorage.removeItem("loggedInUser");
     window.location.href = "login.html";
 }
 
-//phần hiện điểm của sinh viên   PHẦN DEMO NHÉ 
-document.getElementById("semesterSelect").addEventListener("change", updateSemester);
+async function fetchStudentGrades(studentIDs) {
+    try {
 
-const maxSemester = 5; // Ví dụ: Sinh viên mới học đến kỳ 5
+        if (typeof studentIDs === "string") {
+            studentIDs = studentIDs.split(",").map(id => id.trim());  
+        }
+                
+        const response = await fetch(`http://localhost:3000/get-grades?studentIDs=${studentIDs.join(',')}`);
+        if (!response.ok) {
+            throw new Error("Student scores cannot be taken.");
+        }
 
-// Giới hạn hiển thị các kỳ trong dropdown
-function limitSemesterOptions() {
-    const semesterSelect = document.getElementById("semesterSelect");
-    semesterSelect.innerHTML = ""; // Xóa các option cũ
+        const result = await response.json();
+        console.log("Data received:", result);
 
-    for (let i = 1; i <= maxSemester; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.text =  + i;
-        semesterSelect.appendChild(option);
+        if (result.students) {
+            document.querySelectorAll(".grades").forEach(textarea => {
+                textarea.value = JSON.stringify(result.students, null, 2);
+            });
+        } else {
+            throw new Error("Invalid data.");
+        }
+    } catch (error) {
+        alert(error.message);
     }
 }
 
-function updateSemester() {
-    const selectedSemester = document.getElementById("semesterSelect").value;
-    const subjectTable = document.getElementById("subjectTable");
+async function recommendCourses() {
+    const gradesTextarea = document.querySelector(".grades").value;
+    const recommendationsContainer = document.querySelector('.recommendations');
 
-    // Dữ liệu các kỳ học
-    const semesterData = {
-        1: { subjects: ["Math", "Physics", "Chemistry"], grades: [9.0, 8.5, 7.5] },
-        2: { subjects: ["Biology", "Geography", "History"], grades: [8.0, 7.0, 8.5] },
-        3: { subjects: ["English", "IT", "Physical Education"], grades: [9.5, 8.5, 7.0] },
-        4: { subjects: ["Philosophy", "Literature", "Art"], grades: [7.5, 8.0, 7.0] },
-        5: { subjects: ["Programming", "Data Science", "Algorithms"], grades: [6.3, 5.0, 6.0] },
-        6: { subjects: ["Economics", "Accounting", "Management"], grades: [8.0, 8.5, 7.5] },
-        7: { subjects: ["Psychology", "Sociology", "Law"], grades: [8.5, 8.0, 7.0] },
-        8: { subjects: ["Robotics", "AI", "Blockchain"], grades: [9.0, 9.5, 8.5] },
-        9: { subjects: ["Cyber Security", "Cloud Computing", "Networking"], grades: [8.5, 9.0, 8.0] }
-    };
-
-    // Kiểm tra dữ liệu hợp lệ
-    if (!semesterData[selectedSemester]) {
-        subjectTable.innerHTML = "<tr><td colspan='2' style='padding: 8px;'>Không có dữ liệu</td></tr>";
+    if (!gradesTextarea) {
+        alert("Please enter scores.");
         return;
     }
 
-    // Lấy dữ liệu kỳ học hiện tại
-    const { subjects, grades } = semesterData[selectedSemester];
-
-    // Xóa bảng cũ
-    subjectTable.innerHTML = "";
-
-    // Cập nhật nội dung bảng
-    subjects.forEach((subject, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${subject}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${grades[index]}</td>
-        `;
-        subjectTable.appendChild(row);
-    });
-}
-
-// Gọi khi trang tải xong
-limitSemesterOptions();
-updateSemester();
-
-
-
-//dành cho admin   PHẦN DEMO NHÉ
-// document.getElementById("recommendStudentID").addEventListener("input", handleAdminInput);
-
-const studentData = {
-    "S0001": { maxSemester: 5, grades: { 
-        1: { subjects: ["Math", "Physics", "Chemistry"], grades: [9.0, 8.5, 7.5] },
-        2: { subjects: ["Biology", "Geography", "History"], grades: [8.0, 7.0, 8.5] },
-        3: { subjects: ["English", "IT", "Physical Education"], grades: [9.5, 8.5, 7.0] },
-        4: { subjects: ["Philosophy", "Literature", "Art"], grades: [7.5, 8.0, 7.0] },
-        5: { subjects: ["Programming", "Data Science", "Algorithms"], grades: [6.0, 4.5, 4.8] }
-    }},
-    "S0002": { maxSemester: 4, grades: { 
-        1: { subjects: ["Math", "Physics", "Chemistry"], grades: [8.0, 7.5, 7.0] },
-        2: { subjects: ["Biology", "Geography", "History"], grades: [7.5, 8.0, 7.5] },
-        3: { subjects: ["English", "IT", "Physical Education"], grades: [8.5, 9.0, 7.5] },
-        4: { subjects: ["Philosophy", "Literature", "Art"], grades: [7.0, 7.5, 8.0] }
-    }},
-    "S0003": { maxSemester: 3, grades: { 
-        1: { subjects: ["Math", "Physics", "Chemistry"], grades: [7.5, 7.0, 7.0] },
-        2: { subjects: ["Biology", "Geography", "History"], grades: [8.0, 7.5, 7.5] },
-        3: { subjects: ["English", "IT", "Physical Education"], grades: [9.0, 8.0, 7.5] }
-    }},
-    "S0004": { maxSemester: 5, grades: { 
-        1: { subjects: ["Math", "Physics", "Chemistry"], grades: [8.5, 8.0, 7.5] },
-        2: { subjects: ["Biology", "Geography", "History"], grades: [7.0, 8.0, 7.5] },
-        3: { subjects: ["English", "IT", "Physical Education"], grades: [8.5, 7.5, 7.0] },
-        4: { subjects: ["Philosophy", "Literature", "Art"], grades: [7.5, 8.0, 7.0] },
-        5: { subjects: ["Programming", "Data Science", "Algorithms"], grades: [8.5, 8.0, 7.5] }
-    }}
-};
-
-function handleAdminInput() {
-    const inputIDs = document.getElementById("recommendStudentID").value.split(",").map(id => id.trim());
-    fetchStudentGrades(inputIDs);
-}
-
-function fetchStudentGrades(studentIDs) {
-    const gradesTableContainer = document.getElementById("gradesTableContainer");
-    gradesTableContainer.innerHTML = ""; // Xóa dữ liệu cũ
-
-    // Nhóm sinh viên theo từng kỳ học
-    const semesterGroups = {};
-
-    studentIDs.forEach(studentID => {
-        const student = studentData[studentID];
-
-        if (!student) {
-            gradesTableContainer.innerHTML += `<p style="color: red;">Không tìm thấy dữ liệu của ${studentID}</p>`;
+    try {
+        let parsedGrades;
+        try {
+            parsedGrades = JSON.parse(gradesTextarea);
+        } catch (parseError) {
+            alert("The score is not in the correct JSON format. For example: [{\"studentID\": \"S0001\", \"grades\": {\"Math\": 7.2, \"Reading\": 7.2}}]");
+            console.error("JSON parsing error:", parseError);
             return;
         }
 
-        const { maxSemester, grades } = student;
-        if (!semesterGroups[maxSemester]) {
-            semesterGroups[maxSemester] = [];
+        if (!Array.isArray(parsedGrades)) {
+            throw new Error("Invalid score data format. Please enter a JSON array.");
         }
-        semesterGroups[maxSemester].push({ studentID, subjects: grades[maxSemester].subjects, scores: grades[maxSemester].grades });
-    });
 
-    // Hiển thị bảng theo từng kỳ học
-    Object.keys(semesterGroups).forEach(semester => {
-        const studentsInSemester = semesterGroups[semester];
+        // Hiển thị loading và xóa kết quả cũ
+        recommendationsContainer.innerHTML = '<div class="loading">Đang xử lý...</div>';
+        document.querySelectorAll(".explanations, .shapExplanation, .limeExplanation")
+            .forEach(el => el.innerHTML = '');
 
-        let tableHTML = `
-            <div class="student-info">
-                <h4>Semester: ${semester}</h4>
-                ${studentsInSemester.map(({ studentID }) => `<p  padding: 5px; border-radius: 5px; display: block; max-width: 130px; margin-bottom: 5px;">StudentID: ${studentID}</p>`).join("")}
-                <table style="border-collapse: collapse; width: 100%; border: 2px solid black;">
-                    <tr style="border: 2px solid black;">
-                        <th style="text-align: center; padding: 10px; border: 2px solid black;">StudentID</th>
-                        ${studentsInSemester[0].subjects.map(subject => `<th style="text-align: center; padding: 10px; border: 2px solid black;">${subject}</th>`).join("")}
-                    </tr>
-        `;
-
-        studentsInSemester.forEach(({ studentID, scores }) => {
-            tableHTML += `
-                <tr style="border: 2px solid black;">
-                    <td style="text-align: center; padding: 10px; border: 2px solid black;">${studentID}</td>
-                    ${scores.map(score => `<td style="text-align: center; padding: 10px; border: 2px solid black;">${score}</td>`).join("")}
-                </tr>
-            `;
+        const response = await fetch('http://localhost:5000/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ students: parsedGrades }), 
         });
 
-        tableHTML += `</table></div><br>`;
-        gradesTableContainer.innerHTML += tableHTML;
-    });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error from server: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+
+        // Xóa nội dung loading trước khi hiển thị kết quả
+        recommendationsContainer.innerHTML = '';
+
+        if (result.students && result.students.length > 0) {
+            result.students.forEach(student => {
+                const studentContainer = document.createElement('div');
+                studentContainer.className = 'student-result';
+                studentContainer.innerHTML = `
+                    <div class="student-header">
+                        <h3>Results for students: ${student.studentID}</h3>
+                    </div>
+                    <div class="recommendation-section">
+                        <h4>Recommended courses:</h4>
+                        <ul>
+                            ${student.recommendedCourses.map(course => `<li>${course}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="explanation-section">
+                        <h4>Explaination:</h4>
+                        <ul>
+                            ${student.explanations.map(exp => `<li>${exp}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ${student.shapExplanation && student.shapExplanation.length > 0 ? `
+                    <div class="shap-section">
+                        <h4>Impact analysis (SHAP):</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Score</th>
+                                    <th>Affect</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${student.shapExplanation.map(item => `
+                                <tr>
+                                    <td>${item.feature}</td>
+                                    <td>${item.score}</td>
+                                    <td class="impact-${item.impact === 'positive' ? 'positive' : 'negative'}">
+                                        ${item.impact}
+                                    </td>
+                                    <td>${item.value.toFixed(4)}</td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : '<p class="no-explanation">There is no SHAP explanation</p>'}
+                    ${student.limeExplanation && student.limeExplanation.length > 0 ? `
+                    <div class="lime-section">
+                        <h4>Local Explanation (LIME):</h4>
+                        <ul>
+                            ${student.limeExplanation.map(exp => `<li>${exp}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : '<p class="no-explanation">No LIME explanation available</p>'}
+                `;
+
+                recommendationsContainer.appendChild(studentContainer);
+            });
+        } else {
+            throw new Error("No student data returned.");
+        }
+    } catch (error) {
+        recommendationsContainer.innerHTML = 
+            `<div class="error-message">Error: ${error.message}</div>`;
+    console.error("Error details:", error);
+    }
 }
 
-function recommendCourses() {
-    document.querySelectorAll(".rcm").forEach(panel => {
-        panel.style.display = "block";
-        panel.scrollIntoView({ behavior: 'smooth' });
-    });
+
+// async function verifyCertificate() {
+//     const studentID = document.getElementById("verifyStudentID").value.trim();
+//     const certificateHash = document.getElementById("verifyHash").value.trim();
+//     const resultElement = document.getElementById("verifyResult");
+
+//     if (!studentID || !certificateHash) {
+//         resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
+//         resultElement.style.color = "red";
+//         return;
+//     }
+
+//     try {
+//         const response = await fetch("http://localhost:3000/verify-certificate", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ studentID, certificateHash }),
+//         });
+
+//         const data = await response.json();
+
+//         if (data.success) {
+//             resultElement.innerText = "Bằng cấp hợp lệ!";
+//             resultElement.style.color = "green";
+//         } else {
+//             resultElement.innerText = "Bằng cấp không hợp lệ!";
+//             resultElement.style.color = "red";
+//         }
+//     } catch (error) {
+//         console.error("Lỗi khi xác minh:", error);
+//         resultElement.innerText = "Lỗi khi xác minh!";
+//         resultElement.style.color = "red";
+//     }
+// }
+
+// document.addEventListener("DOMContentLoaded", function () {
+//     document.querySelector("button[onclick='verifyCertificate()']").addEventListener("click", verifyCertificate);
+// });
+
+// async function addCertificate() {
+//     const studentID = document.getElementById("studentID").value.trim();
+//     const certificateHash = document.getElementById("certificateHash").value.trim();
+
+//     if (!studentID || !certificateHash) {
+//         alert("Vui lòng nhập đầy đủ thông tin!");
+//         return;
+//     }
+
+//     try {
+//         const response = await fetch("http://localhost:3000/add-certificate", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ studentID, certificateHash })
+//         });
+
+//         const data = await response.json();
+
+//         if (response.ok) {
+//             alert(data.message || "Thêm bằng cấp thành công!");
+//         } else {
+//             alert("Thêm bằng cấp thất bại: " + (data.message || "Lỗi không xác định"));
+//         }
+//     } catch (error) {
+//         console.error("Lỗi khi thêm bằng cấp:", error);
+//         alert("Lỗi khi kết nối đến server.");
+//     }
+// }
+
+async function addCertificate() {
+    const studentID = document.querySelector(".studentID").value.trim();
+    const studentName = document.querySelector(".studentName").value.trim();
+    const certificateName = document.querySelector(".certificateName").value.trim();
+    const issueDate = document.querySelector(".issueDate").value.trim();
+    const issuedBy = document.querySelector(".issuedBy").value.trim();
+    const graduationGrade = document.querySelector(".graduationGrade").value.trim();
+    const resultElement = document.getElementById("addCertificateResult");
+
+    if (!studentID || !studentName || !certificateName || !issueDate || !issuedBy || !graduationGrade) {
+        resultElement.innerText = "Please fill in all the required fields!";
+        resultElement.style.color = "red";
+        return;
+    }
+
+    // Check date format (YYYY-MM-DD)
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(issueDate)) {
+        resultElement.innerText = "Issue date format is incorrect (YYYY-MM-DD, e.g., 2025-03-18)!";
+        resultElement.style.color = "red";
+        return;
+    }
+
+
+    try {
+        const response = await fetch("http://localhost:3000/add-certificate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                studentID,
+                studentName,
+                certificateName,
+                issueDate,
+                issuedBy,
+                graduationGrade
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            let message = data.message || "Certificate added successfully!";
+            if (data.certificateHash) {
+                message += `\nCertificate Hash: ${data.certificateHash}`;
+            }
+            resultElement.innerText = message;
+            resultElement.style.color = "green";
+        } else {
+            resultElement.innerText = data.message || "Failed to add certificate!";
+            resultElement.style.color = "red";
+        }
+    } catch (error) {
+        console.error("Error adding certificate:", error);
+        resultElement.innerText = "Error connecting to server: " + error.message;
+        resultElement.style.color = "red";
+    }
+}
+
+async function verifyCertificate() {
+    const studentID = document.querySelector(".verifyStudentID").value.trim();
+    const certificateHash = document.querySelector(".verifyHash").value.trim();
+    const resultElement = document.getElementById("verifyResult");
+
+    if (!studentID || !certificateHash) {
+        resultElement.innerText = "Please enter both Student ID and Certificate Hash.";
+        resultElement.style.color = "red";
+        return;
+    }
+
+    try {
+        const query = new URLSearchParams({
+            studentID: studentID,
+            certificateHash: certificateHash
+        });
+
+        const response = await fetch(`http://localhost:3000/verify-certificate-full?${query.toString()}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            if (data.isValid) {
+                resultElement.innerText = "✅ Certificate is valid!";
+                resultElement.style.color = "green";
+            } else {
+                resultElement.innerText = "❌ Certificate is invalid!";
+                resultElement.style.color = "red";
+            }
+        } else {
+            resultElement.innerText = data.error || "Verification failed.";
+            resultElement.style.color = "red";
+        }
+    } catch (error) {
+        console.error("Error verifying certificate:", error);
+        resultElement.innerText = "Server error: " + error.message;
+        resultElement.style.color = "red";
+    }
 }
 
 
+// Newly added
+async function fetchGraduationInfo(studentID) {
+    try {
+        console.log("Fetching graduation information for:", studentID);
+        const response = await fetch(`http://localhost:3000/get-graduation-info?studentID=${studentID}`);
+        console.log("Response from server:", response);
+        if (!response.ok) {
+            throw new Error("Unable to fetch graduation information.");
+        }
+
+        const data = await response.json();
+        console.log("Received data:", data);
+        if (data.success && data.studentInfo) {
+            const info = data.studentInfo;
+            document.querySelector(".main-content").innerHTML = `
+                <h2>Graduation Information</h2>
+                <p><strong>Student ID:</strong> ${info.studentID}</p>
+                <p><strong>Student Name:</strong> ${info.studentName}</p>
+                <p><strong>Certificate Name:</strong> ${info.certificateName}</p>
+                <p><strong>Issue Date:</strong> ${info.issueDate}</p>
+                <p><strong>Issued By:</strong> ${info.issuedBy}</p>
+                <p><strong>Graduation Grade:</strong> ${info.graduationGrade}</p>
+                <p><strong>Certificate Hash:</strong> ${info.certificateHash}</p>
+                <p><strong>Timestamp:</strong> ${info.timestamp}</p>
+            `;
+        } else {
+            document.querySelector(".main-content").innerHTML = "No graduation information found.";
+        }
+    } catch (error) {
+        console.error("Error fetching graduation info:", error);
+        document.querySelector(".main-content").innerHTML = "Error fetching graduation information.";
+    }
+}

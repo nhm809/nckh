@@ -3,7 +3,7 @@ async function login() {
     const password = document.getElementById("password").value.trim();
     
     if (!studentID || !password) {
-        document.getElementById("loginError").innerText = "Vui lòng nhập đầy đủ thông tin.";
+        document.getElementById("loginError").innerText = "Please enter complete information.";
         return;
     }
 
@@ -17,7 +17,7 @@ async function login() {
         const result = await response.json();
 
         if (response.ok) {
-            alert(`Xin chào ${studentID}`); //   Alert khi đăng nhập thành công
+            alert(`Welcome ${studentID}`); //   Alert khi đăng nhập thành công
 
             localStorage.setItem("loggedInUser", studentID);
             window.location.href = "dashboard.html";
@@ -25,7 +25,7 @@ async function login() {
             document.getElementById("loginError").innerText = result.message;
         }
     } catch (error) {
-        document.getElementById("loginError").innerText = "Lỗi kết nối đến server.";
+        document.getElementById("loginError").innerText = "Error connecting to server.";
     }
 }
 

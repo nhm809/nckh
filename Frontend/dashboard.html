@@ -9,25 +9,24 @@
 </head>
 
 <body>
-   
+    <div class="logo-container">
+        <img src="images/Logo_FPT_Education.png" alt="FPT Education Logo">
+    </div>
     <!-- PHẦN ĐƯỢC THÊM VÀO -->
 
 
     <div class="main-content">
-        <div class="header-container">
-            <img src="images/Logo_FPT_Education.png" alt="FPT Education Logo">
-            <h1>Smart Academic & Certificate System</h1>
-        </div>
+        <h1>Academic Certificate Management System</h1>
 
         <p id="welcomeMessage"
             style="border: 2px solid #ff6600; padding: 10px; border-radius: 8px; display: inline-block; background-color: #fff3e0; font-weight: bold; text-align: center;">
         </p>
 
         <!-- Nút đăng xuất -->
-        <button onclick="logout()">LogOut</button>
+        <button onclick="logout()">Logout</button>
         
         <div id="graduationSection" style="display: none;">
-            <h2>Thông Tin Tốt Nghiệp</h2>
+            <h2>Graduation Information</h2>
             <p><strong>Student ID:</strong> <span id="gradStudentID"></span></p>
             <p><strong>Student Name:</strong> <span id="gradStudentName"></span></p>
             <p><strong>Certificate Name:</strong> <span id="gradCertificateName"></span></p>
@@ -54,6 +53,22 @@
                 </button>
             </div>
 
+            <!-- Form thêm bằng cấp -->
+            <!-- <div id="addCertificateForm" class="collapsible-form">
+                <h3>Add Certificate</h3>
+                <div class="input-container">
+                    <input class="studentID" placeholder="Student ID (e.g., S0001)">
+                    <input class="studentName" placeholder="Student Name">
+                    <input class="certificateName" placeholder="Certificate Name">
+                    <input class="issueDate" placeholder="Issue Date (YYYY/MM/DD)">
+                    <input class="issuedBy" placeholder="Issued By">
+                    <input class="graduationGrade" placeholder="Graduation Grade">
+                </div>
+                
+                <button onclick="addCertificate()">Confirm</button>
+                <p id="addCertificateResult"></p>
+            </div> -->
+
             <div id="addCertificateForm" class="collapsible-form">
                 <h3>Add Certificate</h3>
                 <div class="input-container">
@@ -63,10 +78,10 @@
                     <!-- Phần này Tài nghĩ là phải có database mà tạm thời vầy đã -->
                     <select class="certificateName">
                         <option value="" disabled selected>Select Certificate Name</option>
-                        <option value="Kỹ Thuật Phần Mềm">Kỹ Thuật Phần Mềm</option>
-                        <option value="Kinh Doanh Quốc Tế">Kinh Doanh Quốc Tế</option>
-                        <option value="Ngôn Ngữ Anh">Ngôn Ngữ Anh</option>
-                        <option value="Quản Trị Kinh Doanh">Quản Trị Kinh Doanh</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="International Business">International Business</option>
+                        <option value="English Language">English Language</option>
+                        <option value="Business administration">Business administration</option>
                     </select>
 
                     <input type="date" class="issueDate">
@@ -91,316 +106,44 @@
             <!-- Form xác minh bằng cấp -->
             <div id="verifyCertificateForm" class="collapsible-form">
                 <h3>Verify Certificate</h3>
-                <input class="verifyStudentID" placeholder="National ID or Passport">
-                <input class="verifyHash" placeholder="Certificate Hash" style="display: none;">
+                <input class="verifyStudentID" placeholder="Student ID (e.g., S0001)">
+                <input class="verifyHash" placeholder="Certificate Hash">
                 <button onclick="verifyCertificate()">Verify</button>
                 <p id="verifyResult"></p>
             </div>
 
-              <!-- Form lấy điểm sinh viên -->
-
-              <div id="fetchGradesForm" class="collapsible-form">
-                <h3>Get Students' Grades</h3>
+            <!-- Form lấy điểm sinh viên -->
+            <div id="fetchGradesForm" class="collapsible-form">
+                <h3>Get Student Grades</h3>
                 <div class="grades-container">
-                    <input id="recommendStudentID" class="recommendStudentID" placeholder="Student IDs">
-                    <button class="fetchGradesBtn" onclick="handleAdminInput()">Get Grades</button> 
-                    <div id="gradesTableContainer"></div>
-                </div>
-                <div class="recommendation-panel" id="recommendationResults">
-                    <h2>Suggested Learning Path</h2>
-                    <button onclick="recommendCourses()">Get recommendations</button>
-
-                    <!--S0003-->
-                    <div class="rcm"  style="display: none;">
-                        <p><b>Student S0003 - Semester 3 </b></p>
-                    
-                        <div class="mark">
-                            <table >
-                                <thead>
-                                    <tr>
-                                        <th>Course</th>
-                                        <th>Score</th>
-                                        <th>Evaluation</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>EngLish</td>
-                                        <td>9</td>
-                                        <td class="good">Good</td>
-                                    </tr>
-                                    <tr>
-                                        <td>IT</td>
-                                        <td>8</td>
-                                        <td class="good">Good</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Physical Education</td>
-                                        <td>7.5</td>
-                                        <td class="average">Average</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    
-                        <div class="box">
-                            <b>Recommendations:</b>
-                            <ul>
-                                <li>Since both English (9) and IT (8) are in the "Good" range, no recommendation is needed for these subjects. However, Physical Education (7.5) is classified as "Average" (below 8), so the system recommends reviewing this subject to improve performance.</li>    
-                                <li>You’re eligible for next semester’s courses: Philosophy, Literature, Art.</li>
-                            </ul>
-                        </div>
-                    
-                        <div class="box">
-                            <b>Explanations:</b>
-                            <ul>
-                                <li>This section provides a brief justification for the recommendation:
-
-                                    Physical Education (Score: 7.5):
-                                    
-                                    Performance is average, suggesting the student may benefit from additional practice.
-                                    
-                                    If the school requires a minimum of 8 for good performance, improvement is necessary.
-                                    
-                                    The student may focus on strength training, endurance, and technique enhancement to improve.</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="box">
-                            <b>SHAP Analysis & LIME Explanation:</b>
-                            <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>SHAP Value</th>
-                                    <th>LIME Weight</th>
-                                    <th>Impact on "Strong" Prediction</th>
-                                </tr>
-                                <tr>
-                                    <td>English</td>
-                                    <td>0.48</td>
-                                    <td>0.31</td>
-                                    <td>Very High</td>
-                                </tr>
-                                <tr>
-                                    <td>IT</td>
-                                    <td>0.35</td>
-                                    <td>0.20</td>
-                                    <td>High</td>
-                                </tr>
-                                <tr>
-                                    <td>Physical Education</td>
-                                    <td>0.15</td>
-                                    <td>0.15</td>
-                                    <td>Medium</td>
-                                </tr>
-                            </table>
-                        </div>
-                        
-                        <!-- <div class="box">
-                            <b>LIME Explanation:</b>
-                            <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>LIME Weight</th>
-                                    <th>Impact on "Strong" Prediction</th>
-                                </tr>
-                                <tr>
-                                    <td>English</td>
-                                    <td>0.31</td>
-                                    <td>Very High</td>
-                                </tr>
-                                <tr>
-                                    <td>IT</td>
-                                    <td>0.20</td>
-                                    <td>High</td>
-                                </tr>
-                                <tr>
-                                    <td>Physical Education</td>
-                                    <td>0.15</td>
-                                    <td>Medium</td>
-                                </tr>
-                            </table>
-                        </div>
-                         -->
-
-                    </div>
-
-
-
-                    <!--S0001-->
-
-                    <div class="rcm" style="display: none;">
-                        <p><b>Student S0001 - Semester 5 </b></p>
-                    
-                        <div class="mark">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Course</th>
-                                        <th>Score</th>
-                                        <th>Evaluation</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Programming</td>
-                                        <td>6</td>
-                                        <td class="average">Average</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Data Science</td>
-                                        <td>4.5</td>
-                                        <td class="bad">Bad</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Algorithms</td>
-                                        <td>4.8</td>
-                                        <td class="bad">Bad</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    
-                        <div class="box">
-                            <b>Recommendations:</b>
-                            <ul>
-                                <li>Retake <b>Data Science</b> and <b>Algorithms</b> as they are prerequisites for advanced courses.</li>
-                                <li>Seek tutoring or additional learning resources to strengthen weak areas.</li>
-                                <li>Practice coding problems related to Algorithms on platforms like LeetCode or Codeforces.</li>
-                                <li>Engage in group study sessions to enhance understanding and retention.</li>
-                                <li>Use spaced repetition techniques to reinforce concepts over time.</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="box">
-                            <b>Explanations:</b>
-                            <ul>
-                                <li>The <b>SHAP analysis</b> shows that Data Science (-0.41) and Algorithms (-0.38) have the most negative impact on academic performance.</li>
-                                <li>Improving <b>Data Science</b> to 5.5+ would significantly increase the predicted GPA category.</li>
-                                <li>Improving <b>Algorithms</b> to 5.5+ would further stabilize academic progress.</li>
-                                <li>LIME suggests that focusing on these two subjects is the most effective way to boost overall performance.</li>
-                                <li>Programming (6.0) is at an acceptable level, but increasing it to 7.0+ could provide additional academic benefits.</li>
-                            </ul>
-                        </div>
-                        
-                        
-                        <div class="box">
-                            <b>SHAP Analysis & LIME Explanation:</b>
-                            <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>SHAP Value</th>
-                                    <th>LIME Weight</th>
-                                    <th>Impact on "Strong" Prediction</th>
-                                </tr>
-                                <tr>
-                                    <td>Programming</td>
-                                    <td>0.32</td>
-                                    <td>0.18</td>
-                                    <td>High</td>
-                                </tr>
-                                <tr>
-                                    <td>Data Science</td>
-                                    <td>-0.41</td>
-                                    <td>-0.25</td>
-                                    <td>Low</td>
-                                </tr>
-                                <tr>
-                                    <td>Algorithms</td>
-                                    <td>-0.38</td>
-                                    <td>-0.22</td>
-                                    <td>Low</td>
-                                </tr>
-                            </table>
-                        </div>
-                        
-                        <!-- <div class="box">
-                            <b>LIME Explanation:</b>
-                            <table border="1" style="width:100%; text-align:center; border-collapse:collapse;">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>LIME Weight</th>
-                                    <th>Impact on "Strong" Prediction</th>
-                                </tr>
-                                <tr>
-                                    <td>Programming</td>
-                                    <td>0.18</td>
-                                    <td>High</td>
-                                </tr>
-                                <tr>
-                                    <td>Data Science</td>
-                                    <td>-0.25</td>
-                                    <td>Low</td>
-                                </tr>
-                                <tr>
-                                    <td>Algorithms</td>
-                                    <td>-0.22</td>
-                                    <td>Low</td>
-                                </tr>
-                            </table>
-                        </div> -->
-                        
-
-                    </div>
-
-                        
-
-                    </div>
-
+                    <input id="recommendStudentID" class="recommendStudentID" placeholder="Student ID">
+                    <button class="fetchGradesBtn" onclick="fetchStudentGrades(document.getElementById('recommendStudentID').value.split(','))">Get Grades</button>                    <textarea class="grades"></textarea>
+                    <button class="recommend-btn" onclick="recommendCourses()">Get Recommendations</button>
+                    <div class="recommendations"></div>
+                    <div class="explanations"></div>
+                    <div class="shapExplanation"></div>
+                    <div class="limeExplanation"></div>
                 </div>
             </div>
         </div>
 
 
 
-   <!-- Phần dành cho sinh viên -->
-<div style="display: flex; justify-content: center; margin-top: 40px; margin-bottom: 100px;">
-    <div id="studentSection" style="display: none; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; width: 390px;">
-        <h3 style="color: #FF6A00;">Profile university students</h3>
+        <!-- Phần dành cho sinh viên -->
+        <div id="studentSection" style="display: none;">
 
-        <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;">Profile</th>
-            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;"></th>
-        </tr>
-        <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">StudentID</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">S0001</td>
-        </tr>
-        <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">Semester</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-                <select id="semesterSelect" onchange="updateSemester()">
-                    <option value="1"> 1</option>
-                    <option value="2"> 2</option>
-                    <option value="3"> 3</option>
-                    <option value="4"> 4</option>
-                    <option value="5"> 5</option>
-                    <option value="6"> 6</option>
-                    <option value="7"> 7</option>
-                    <option value="8"> 8</option>
-                    <option value="9"> 9</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;">Subject</th>
-            <th style="text-align: left; padding: 8px; border-bottom: 2px solid #FF6A00;">Grades</th>
-        </tr>
-        <tbody id="subjectTable">
+
+            <h2>Your Grades</h2>
+            <textarea class="grades" readonly></textarea>
+
+            <h2>Study Path Recommendation</h2>
+            <button onclick="recommendCourses()">Get Recommendations</button>
+            <div class="recommendations"></div>
+            <div class="explanations"></div>
+            <div class="shapExplanation"></div>
+            <div class="limeExplanation"></div>
         </div>
-            <!-- Nội dung động sẽ được tạo ở đây -->
-        </tbody>
-    </table>
-    <div>
-        <h2>Suggested Learning Path</h2>
-        <button onclick="recommendCourses()">Get recommendations</button>
-        <div class="recommendations"></div>
-        <div class="explanations"></div>
-        <div class="shapExplanation"></div>
-        <div class="limeExplanation"></div>
-    </div>
-</div>
+
 
     </div>
 
