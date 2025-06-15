@@ -39,16 +39,19 @@ const web3 = new Web3(process.env.BLOCKCHAIN_RPC);
 
 const contractJSON = JSON.parse(fs.readFileSync(blockchainPath, 'utf8'));
 const contractABI = contractJSON.abi;
-const contractAddress = contractJSON.networks[5777]?.address; // Đọc địa chỉ từ mạng 5777 (Ganache)
 
-if (!contractAddress) {
-    console.error("Contract address not found for network 5777. Please migrate the contract.");
-    process.exit(1);
-  }
-
-const contract = new web3.eth.Contract(contractABI, contractAddress);
-
-console.log("Using contract address:", contractAddress);
+// Lấy contract instance động theo networkId
+let contract;
+(async () => {
+    const networkId = await web3.eth.net.getId();
+    const contractAddress = contractJSON.networks[networkId]?.address;
+    if (!contractAddress) {
+        console.error(`Contract address not found for network ${networkId}. Please migrate the contract.`);
+        process.exit(1);
+    }
+    contract = new web3.eth.Contract(contractABI, contractAddress);
+    console.log('Using contract address:', contractAddress);
+})();
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -122,15 +125,13 @@ app.post('/add-certificate', async (req, res) => {
         return res.status(400).json({ error: "Thiếu thông tin" });
     }
 
-    console.log("Received date:", issueDate); // Log ngày nhận được
+    console.log("Received data:", { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade });
 
     // Chuyển đổi issueDate từ DD/MM/YYYY thành timestamp
     let issueDateUint;
     try {
-        // Thử parse với định dạng DD/MM/YYYY
         const parsedDate = moment(issueDate, "DD/MM/YYYY", true);
         if (!parsedDate.isValid()) {
-            // Nếu không hợp lệ, thử parse với định dạng YYYY/MM/DD
             const parsedDate2 = moment(issueDate, "YYYY/MM/DD", true);
             if (!parsedDate2.isValid()) {
                 return res.status(400).json({ 
@@ -151,28 +152,75 @@ app.post('/add-certificate', async (req, res) => {
         });
     }
 
-    console.log("Converted timestamp:", issueDateUint); // Log timestamp sau khi chuyển đổi
-
+    // Chuyển đổi các trường string sang bytes32
     try {
+        const studentIDBytes32 = web3.utils.asciiToHex(studentID.padEnd(32, '\0'));
+        const studentNameBytes32 = web3.utils.asciiToHex(studentName.padEnd(32, '\0'));
+        const certificateNameBytes32 = web3.utils.asciiToHex(certificateName.padEnd(32, '\0'));
+        const issuedByBytes32 = web3.utils.asciiToHex(issuedBy.padEnd(32, '\0'));
+        const graduationGradeBytes32 = web3.utils.asciiToHex(graduationGrade.padEnd(32, '\0'));
+
+        console.log("Converted data:", {
+            studentIDBytes32,
+            studentNameBytes32,
+            certificateNameBytes32,
+            issueDateUint,
+            issuedByBytes32,
+            graduationGradeBytes32
+        });
+
         const accounts = await web3.eth.getAccounts();
+        console.log("Using account:", accounts[0]);
 
         let estimatedGas;
         try {
             estimatedGas = await contract.methods.addCertificate(
-                studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade
+                studentIDBytes32,
+                studentNameBytes32,
+                certificateNameBytes32,
+                issueDateUint,
+                issuedByBytes32,
+                graduationGradeBytes32
             ).estimateGas({ from: accounts[0] });
+            
+            console.log("Estimated gas:", estimatedGas);
         } catch (error) {
             console.error("Lỗi khi ước tính gas:", error);
-            return res.status(500).json({ error: "Lỗi khi ước tính gas", details: error.toString() });
+            return res.status(500).json({ 
+                error: "Lỗi khi ước tính gas", 
+                details: error.toString(),
+                data: {
+                    studentID: studentIDBytes32,
+                    studentName: studentNameBytes32,
+                    certificateName: certificateNameBytes32,
+                    issueDate: issueDateUint,
+                    issuedBy: issuedByBytes32,
+                    graduationGrade: graduationGradeBytes32
+                }
+            });
         }
+
         const tx = await contract.methods.addCertificate(
-            studentID, studentName, certificateName, issueDateUint, issuedBy, graduationGrade
+            studentIDBytes32,
+            studentNameBytes32,
+            certificateNameBytes32,
+            issueDateUint,
+            issuedByBytes32,
+            graduationGradeBytes32
         ).send({ from: accounts[0], gas: estimatedGas });
 
-        res.status(200).json({ message: "Bằng cấp đã thêm thành công", txHash: tx.transactionHash });
+        console.log("Transaction successful:", tx.transactionHash);
+        res.status(200).json({ 
+            message: "Bằng cấp đã thêm thành công", 
+            txHash: tx.transactionHash 
+        });
     } catch (error) {
         console.error("Lỗi Blockchain:", error);
-        res.status(500).json({ message: "Lỗi máy chủ", error: error.toString() });
+        res.status(500).json({ 
+            message: "Lỗi máy chủ", 
+            error: error.toString(),
+            details: error.message
+        });
     }
 });
 
@@ -184,15 +232,18 @@ app.get('/verify-certificate', async (req, res) => {
     }
 
     try {
+        // Chuyển studentID sang bytes32
+        const studentIDBytes32 = web3.utils.asciiToHex(studentID.padEnd(32, '\0'));
+
         const existingStudentID = await contract.methods.hashToStudent(certificateHash).call();
-        if (existingStudentID && existingStudentID !== studentID) {
+        if (existingStudentID && existingStudentID !== studentIDBytes32) {
             return res.status(400).json({
                 error: "Certificate hash đã được sử dụng bởi một sinh viên khác",
                 existingStudentID: existingStudentID
             });
         }
 
-        const isValid = await contract.methods.verifyCertificate(studentID, certificateHash).call();
+        const isValid = await contract.methods.verifyCertificate(studentIDBytes32, certificateHash).call();
         res.status(200).json({ isValid });
     } catch (error) {
         console.error("Lỗi Blockchain:", error);

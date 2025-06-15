@@ -107,11 +107,6 @@ contract Certificate {
         return cert.certificateHash == _certificateHash;
     }
 
-    
-
-
-
-
     function getCertificate(bytes32 _studentID) public view returns (
         bytes32,
         bytes32,
@@ -134,5 +129,46 @@ contract Certificate {
             cert.certificateHash,
             cert.timestamp
         );
+    }
+
+    function certificateExists(bytes32 _studentID) public view returns (bool) {
+        return certificates[_studentID].studentID != bytes32(0);
+    }
+
+    function getCertificateInfo(bytes32 _studentID) public view returns (
+        string memory studentID,
+        string memory studentName,
+        string memory certificateName,
+        uint issueDate,
+        string memory issuedBy,
+        string memory graduationGrade,
+        bytes32 certificateHash,
+        uint timestamp
+    ) {
+        Cert memory cert = certificates[_studentID];
+        require(cert.studentID != bytes32(0), "Certificate not found");
+        
+        return (
+            _bytes32ToString(cert.studentID),
+            _bytes32ToString(cert.studentName),
+            _bytes32ToString(cert.certificateName),
+            cert.issueDate,
+            _bytes32ToString(cert.issuedBy),
+            _bytes32ToString(cert.graduationGrade),
+            cert.certificateHash,
+            cert.timestamp
+        );
+    }
+
+    function _bytes32ToString(bytes32 _bytes) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes[i] != 0; i++) {
+            bytesArray[i] = _bytes[i];
+        }
+        return string(bytesArray);
     }
 }
