@@ -319,40 +319,51 @@ async function addCertificate() {
 }
 
 async function verifyCertificate() {
-    const studentID = document.querySelector(".verifyStudentID").value.trim();
-    const certificateHash = document.querySelector(".verifyHash").value.trim();
-    const resultElement = document.getElementById("verifyResult");
+    const studentID = document.querySelector('.verifyStudentID').value;
+    const certificateHash = document.querySelector('.verifyHash').value;
+    const resultElement = document.getElementById('verifyResult');
+    const certificateInfo = document.getElementById('certificateInfo');
 
     if (!studentID || !certificateHash) {
-        resultElement.innerText = "Vui lòng nhập đầy đủ thông tin!";
-        resultElement.style.color = "red";
+        resultElement.textContent = 'Vui lòng nhập đầy đủ thông tin!';
+        resultElement.style.color = 'red';
+        certificateInfo.style.display = 'none';
         return;
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/verify-certificate?studentID=${encodeURIComponent(studentID)}&certificateHash=${encodeURIComponent(certificateHash)}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        });
-
+        const response = await fetch(`http://localhost:3000/verify-certificate?studentID=${studentID}&certificateHash=${certificateHash}`);
         const data = await response.json();
 
         if (response.ok) {
             if (data.isValid) {
-                resultElement.innerText = "Bằng cấp hợp lệ!";
-                resultElement.style.color = "green";
+                resultElement.textContent = 'Certificate hợp lệ!';
+                resultElement.style.color = 'green';
+                
+                // Hiển thị thông tin certificate
+                if (data.certificateInfo) {
+                    document.getElementById('certStudentID').textContent = data.certificateInfo.studentID;
+                    document.getElementById('certStudentName').textContent = data.certificateInfo.studentName;
+                    document.getElementById('certCertificateName').textContent = data.certificateInfo.certificateName;
+                    document.getElementById('certIssueDate').textContent = data.certificateInfo.issueDate;
+                    document.getElementById('certIssuedBy').textContent = data.certificateInfo.issuedBy;
+                    document.getElementById('certGraduationGrade').textContent = data.certificateInfo.graduationGrade;
+                    certificateInfo.style.display = 'block';
+                }
             } else {
-                resultElement.innerText = "Bằng cấp không hợp lệ!";
-                resultElement.style.color = "red";
+                resultElement.textContent = 'Certificate không hợp lệ!';
+                resultElement.style.color = 'red';
+                certificateInfo.style.display = 'none';
             }
         } else {
-            resultElement.innerText = data.error || "Xác minh thất bại!";
-            resultElement.style.color = "red";
+            resultElement.textContent = data.error || 'Có lỗi xảy ra!';
+            resultElement.style.color = 'red';
+            certificateInfo.style.display = 'none';
         }
     } catch (error) {
-        console.error("Lỗi khi xác minh:", error);
-        resultElement.innerText = "Lỗi khi kết nối đến server: " + error.message;
-        resultElement.style.color = "red";
+        resultElement.textContent = 'Lỗi kết nối server!';
+        resultElement.style.color = 'red';
+        certificateInfo.style.display = 'none';
     }
 }
 

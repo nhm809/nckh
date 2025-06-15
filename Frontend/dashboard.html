@@ -110,6 +110,37 @@
                 <input class="verifyHash" placeholder="Certificate Hash">
                 <button onclick="verifyCertificate()">Verify</button>
                 <p id="verifyResult"></p>
+                
+                <!-- Thêm phần hiển thị thông tin certificate -->
+                <div id="certificateInfo" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+                    <h4>Certificate Information</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Student ID:</strong>
+                            <span id="certStudentID"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Student Name:</strong>
+                            <span id="certStudentName"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Certificate Name:</strong>
+                            <span id="certCertificateName"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Issue Date:</strong>
+                            <span id="certIssueDate"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Issued By:</strong>
+                            <span id="certIssuedBy"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Graduation Grade:</strong>
+                            <span id="certGraduationGrade"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Form lấy điểm sinh viên -->

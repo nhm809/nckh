@@ -234,17 +234,52 @@ app.get('/verify-certificate', async (req, res) => {
     try {
         // Chuyển studentID sang bytes32
         const studentIDBytes32 = web3.utils.asciiToHex(studentID.padEnd(32, '\0'));
+        console.log('StudentID bytes32:', studentIDBytes32);
 
-        const existingStudentID = await contract.methods.hashToStudent(certificateHash).call();
-        if (existingStudentID && existingStudentID !== studentIDBytes32) {
-            return res.status(400).json({
-                error: "Certificate hash đã được sử dụng bởi một sinh viên khác",
-                existingStudentID: existingStudentID
-            });
+        try {
+            const existingStudentID = await contract.methods.hashToStudent(certificateHash).call();
+            console.log('Existing StudentID:', existingStudentID);
+            
+            if (existingStudentID && existingStudentID !== studentIDBytes32) {
+                return res.status(400).json({
+                    error: "Certificate hash đã được sử dụng bởi một sinh viên khác",
+                    existingStudentID: existingStudentID
+                });
+            }
+        } catch (error) {
+            console.error("Lỗi khi kiểm tra hashToStudent:", error);
+            return res.status(500).json({ error: "Lỗi khi kiểm tra certificate hash", details: error.message });
         }
 
-        const isValid = await contract.methods.verifyCertificate(studentIDBytes32, certificateHash).call();
-        res.status(200).json({ isValid });
+        try {
+            const isValid = await contract.methods.verifyCertificate(studentIDBytes32, certificateHash).call();
+            console.log('Is Valid:', isValid);
+
+            if (isValid) {
+                try {
+                    const cert = await contract.methods.getCertificate(studentIDBytes32).call();
+                    console.log('Certificate data:', cert);
+                    
+                    const certificateInfo = {
+                        studentID: web3.utils.hexToUtf8(cert[0]).replace(/\0/g, ''),
+                        studentName: web3.utils.hexToUtf8(cert[1]).replace(/\0/g, ''),
+                        certificateName: web3.utils.hexToUtf8(cert[2]).replace(/\0/g, ''),
+                        issueDate: new Date(Number(cert[3]) * 1000).toLocaleDateString(),
+                        issuedBy: web3.utils.hexToUtf8(cert[4]).replace(/\0/g, ''),
+                        graduationGrade: web3.utils.hexToUtf8(cert[5]).replace(/\0/g, '')
+                    };
+                    res.status(200).json({ isValid, certificateInfo });
+                } catch (error) {
+                    console.error("Lỗi khi lấy thông tin certificate:", error);
+                    return res.status(500).json({ error: "Lỗi khi lấy thông tin certificate", details: error.message });
+                }
+            } else {
+                res.status(200).json({ isValid });
+            }
+        } catch (error) {
+            console.error("Lỗi khi verify certificate:", error);
+            return res.status(500).json({ error: "Lỗi khi verify certificate", details: error.message });
+        }
     } catch (error) {
         console.error("Lỗi Blockchain:", error);
         res.status(500).json({ error: "Lỗi Blockchain", details: error.message });
