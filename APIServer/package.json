@@ -13,7 +13,7 @@
     "web3": "^4.16.0"
   },
   "scripts": {
-      "start": "concurrently \"ganache-cli --port 7545\" \"cd .. && python AI_XAI/analyze.py\" \"sleep 5 && truffle migrate --network development\" \"node server.js\""
+      "start": "python ../AI_XAI/analyze.py"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
