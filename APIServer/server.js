@@ -29,7 +29,7 @@ const blockchainPath = path.resolve(__dirname, '../Blockchain/build/contracts/Ce
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 phút
     max: 100, // Giới hạn 100 yêu cầu mỗi IP trong 15 phút
-    message: "Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút."
+    message: "Too many requests from this IP, please try again in 15 minutes."
 });
 app.use(limiter);
 
@@ -78,7 +78,7 @@ const readGradesFromCSV = (studentIDs) => {
                 if (studentDataList.length > 0) {
                     resolve({ students: studentDataList });
                 } else {
-                    reject(new Error("Không tìm thấy sinh viên"));
+                    reject(new Error("No student found"));
                 }
             })
             .on("error", (error) => reject(error));
@@ -89,14 +89,14 @@ const readGradesFromCSV = (studentIDs) => {
 app.get('/get-grades', async (req, res) => {
     const { studentIDs } = req.query;
     if (!studentIDs) {
-        return res.status(400).json({ error: "Thiếu studentIDs" });
+        return res.status(400).json({ error: "Missing studentIDs" });
     }
 
     const studentIDArray = studentIDs.split(',');
 
     try {
         const studentData = await readGradesFromCSV(studentIDArray);
-        console.log(`Dữ liệu của ${studentIDs}:`, studentData); // ✅ Kiểm tra dữ liệu
+        console.log(`Data of ${studentIDs}:`, studentData); // ✅ Kiểm tra dữ liệu
         res.setHeader('Cache-Control', 'no-store'); // 🔹 Ngăn cache
         res.json(studentData);
     } catch (error) {
@@ -108,21 +108,21 @@ app.get('/get-grades', async (req, res) => {
 const users = [
     { studentID: "S0001", password: "123" },
     { studentID: "admin", password: "123" },
-    { studentID: "S1001", password: "123" }
+    { studentID: "S0009", password: "123" }
 ];
 
 // ✅ API đăng nhập
 app.post("/login", (req, res) => {
     const { studentID, password } = req.body;
     const user = users.find(u => u.studentID === studentID && u.password === password);
-    user ? res.json({ message: "Đăng nhập thành công" }) : res.status(401).json({ message: "Sai tài khoản hoặc mật khẩu" });
+    user ? res.json({ message: "Log in successfully" }) : res.status(401).json({ message: "Wrong account or password" });
 });
 
 // ✅ API thêm bằng cấp vào Blockchain
 app.post('/add-certificate', async (req, res) => {
     const { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade } = req.body;
     if (!studentID || !graduationGrade || !studentName || !certificateName || !issueDate || !issuedBy) {
-        return res.status(400).json({ error: "Thiếu thông tin" });
+        return res.status(400).json({ error: "Missing information" });
     }
 
     console.log("Received data:", { studentID, studentName, certificateName, issueDate, issuedBy, graduationGrade });
@@ -135,7 +135,7 @@ app.post('/add-certificate', async (req, res) => {
             const parsedDate2 = moment(issueDate, "YYYY/MM/DD", true);
             if (!parsedDate2.isValid()) {
                 return res.status(400).json({ 
-                    error: "Định dạng ngày không hợp lệ. Dùng DD/MM/YYYY hoặc YYYY/MM/DD",
+                    error: "Invalid date format. Use DD/MM/YYYY or YYYY/MM/DD",
                     receivedDate: issueDate
                 });
             }
@@ -146,7 +146,7 @@ app.post('/add-certificate', async (req, res) => {
     } catch (error) {
         console.error("Error parsing date:", error);
         return res.status(400).json({ 
-            error: "Lỗi xử lý ngày tháng",
+            error: "Error handling dates",
             details: error.message,
             receivedDate: issueDate
         });
@@ -185,9 +185,9 @@ app.post('/add-certificate', async (req, res) => {
             
             console.log("Estimated gas:", estimatedGas);
         } catch (error) {
-            console.error("Lỗi khi ước tính gas:", error);
+            console.error("Error when estimating gas:", error);
             return res.status(500).json({ 
-                error: "Lỗi khi ước tính gas", 
+                error: "Error when estimating gas", 
                 details: error.toString(),
                 data: {
                     studentID: studentIDBytes32,
@@ -211,13 +211,13 @@ app.post('/add-certificate', async (req, res) => {
 
         console.log("Transaction successful:", tx.transactionHash);
         res.status(200).json({ 
-            message: "Bằng cấp đã thêm thành công", 
+            message: "Degree added successfully", 
             txHash: tx.transactionHash 
         });
     } catch (error) {
-        console.error("Lỗi Blockchain:", error);
+        console.error("Blockchain error:", error);
         res.status(500).json({ 
-            message: "Lỗi máy chủ", 
+            message: "Server error", 
             error: error.toString(),
             details: error.message
         });
@@ -228,7 +228,7 @@ app.post('/add-certificate', async (req, res) => {
 app.get('/verify-certificate', async (req, res) => {
     const { studentID, certificateHash } = req.query;
     if (!studentID || !certificateHash) {
-        return res.status(400).json({ error: "Thiếu thông tin studentID hoặc certificateHash" });
+        return res.status(400).json({ error: "Missing studentID or certificateHash information" });
     }
 
     try {
@@ -242,13 +242,13 @@ app.get('/verify-certificate', async (req, res) => {
             
             if (existingStudentID && existingStudentID !== studentIDBytes32) {
                 return res.status(400).json({
-                    error: "Certificate hash đã được sử dụng bởi một sinh viên khác",
+                    error: "The certificate hash has already been used by another student",
                     existingStudentID: existingStudentID
                 });
             }
         } catch (error) {
-            console.error("Lỗi khi kiểm tra hashToStudent:", error);
-            return res.status(500).json({ error: "Lỗi khi kiểm tra certificate hash", details: error.message });
+            console.error("Error checking hashToStudent:", error);
+            return res.status(500).json({ error: "Error checking certificate hash", details: error.message });
         }
 
         try {
@@ -270,19 +270,19 @@ app.get('/verify-certificate', async (req, res) => {
                     };
                     res.status(200).json({ isValid, certificateInfo });
                 } catch (error) {
-                    console.error("Lỗi khi lấy thông tin certificate:", error);
-                    return res.status(500).json({ error: "Lỗi khi lấy thông tin certificate", details: error.message });
+                    console.error("Error while retrieving certificate information:", error);
+                    return res.status(500).json({ error: "Error while retrieving certificate information", details: error.message });
                 }
             } else {
                 res.status(200).json({ isValid });
             }
         } catch (error) {
-            console.error("Lỗi khi verify certificate:", error);
-            return res.status(500).json({ error: "Lỗi khi verify certificate", details: error.message });
+            console.error("Error verifying certificate:", error);
+            return res.status(500).json({ error: "Error verifying certificate", details: error.message });
         }
     } catch (error) {
-        console.error("Lỗi Blockchain:", error);
-        res.status(500).json({ error: "Lỗi Blockchain", details: error.message });
+        console.error("Blockchain error:", error);
+        res.status(500).json({ error: "Blockchain error", details: error.message });
     }
 });
 
@@ -290,7 +290,7 @@ app.get('/get-certificate', async (req, res) => {
     const { studentID } = req.query;
 
     if (!studentID) {
-        return res.status(400).json({ error: "Thiếu studentID" });
+        return res.status(400).json({ error: "Missing studentID" });
     }
 
     try {
@@ -307,13 +307,13 @@ app.get('/get-certificate', async (req, res) => {
             timestamp: moment.unix(parseInt(certificate[7])).format('YYYY/MM/DD')
         });
     } catch (error) {
-        console.error("Lỗi khi lấy chứng chỉ:", error);
-        res.status(404).json({ error: "Không tìm thấy chứng chỉ" });
+        console.error("Error getting certificate:", error);
+        res.status(404).json({ error: "No certificate found" });
     }
 });
 
 
-// Gọi Python Server
+// Call Python Server
 async function callAPIViaPythonServer(studentID, grades) {
     try {
         const response = await fetch('http://localhost:5000/analyze', {
@@ -324,12 +324,12 @@ async function callAPIViaPythonServer(studentID, grades) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Lỗi từ Flask API: ${response.status} - ${errorText}`);
+            throw new Error(`Error from Flask API: ${response.status} - ${errorText}`);
         }
 
         return await response.json();
     } catch (error) {
-        console.error("Lỗi trong callAPIViaPythonServer:", {
+        console.error("Error in callAPIViaPythonServer:", {
             message: error.message,
             stack: error.stack,
             cause: error.cause,
@@ -343,42 +343,42 @@ async function callAPIWithCache(studentID, grades) {
     const cachedResult = cache.get(cacheKey);
 
     if (cachedResult) {
-        return cachedResult; // Trả về kết quả từ cache
+        return cachedResult; // Return cached result
     }
 
-    const result = await callAPIViaPythonServer(studentID, grades); // Gọi Python server
-    cache.set(cacheKey, result); // Lưu kết quả vào cache
+    const result = await callAPIViaPythonServer(studentID, grades); // Call Python server
+    cache.set(cacheKey, result); // Store result in cache
     return result;
 }
 
-// ✅ API gợi ý khóa học dựa trên AI/XAI
+// ✅ AI/XAI-based course recommendation API
 app.post('/recommend-courses', async (req, res) => {
     const { studentID, grades } = req.body;
     if (!studentID || !grades) {
-        return res.status(400).json({ error: "Thiếu studentID hoặc grades" });
+        return res.status(400).json({ error: "Missing studentID or grades" });
     }
 
     try {
-        // Kiểm tra xem grades có phải là object không
+        // Ensure grades is an object
         if (typeof grades !== 'object' || Array.isArray(grades)) {
-            return res.status(400).json({ error: "Grades phải là một object" });
+            return res.status(400).json({ error: "Grades must be an object" });
         }
 
-        const result = await callAPIWithCache(studentID, grades); // Gọi API với cache
+        const result = await callAPIWithCache(studentID, grades); // Call API with cache
         res.status(200).json(result);
     } catch (error) {
-        console.error("Lỗi trong /recommend-courses:", error);
-        res.status(500).json({ error: "Lỗi khi xử lý AI/XAI", details: error.message });
+        console.error("Error in /recommend-courses:", error);
+        res.status(500).json({ error: "Error processing AI/XAI", details: error.message });
     }
 });
 
-// ✅ Khởi động server
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.get('/', (req, res) => res.send('Server is running!'));
 app.listen(PORT, () => console.log(` Server run at http://localhost:${PORT}`));
 
-// Xử lý lỗi toàn cục
+// Global error handler
 app.use((err, req, res, next) => {
-    console.error("Lỗi toàn cục:", err);
-    res.status(500).json({ error: "Đã xảy ra lỗi máy chủ" });
+    console.error("Global error:", err);
+    res.status(500).json({ error: "Internal server error" });
 });

@@ -20,7 +20,7 @@ CORS(app)
 
 @lru_cache(maxsize=1)
 def load_courses():
-    courses_df = pd.read_csv("DataProcessor/coursesData.csv")
+    courses_df = pd.read_csv("../DataProcessor/coursesData.csv")
     return {
         row['Course']: {
             'credits': row['Credits'],
