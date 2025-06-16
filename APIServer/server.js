@@ -56,6 +56,21 @@ let contract;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
+// ✅ Danh sách tài khoản giả lập
+const users = [
+    { studentID: "S0001", password: "123" },
+    { studentID: "admin", password: "123" },
+    { studentID: "S0009", password: "123" }
+];
+
+// ✅ API đăng nhập
+app.post("/login", (req, res) => {
+    const { studentID, password } = req.body;
+    const user = users.find(u => u.studentID === studentID && u.password === password);
+    user ? res.json({ message: "Log in successfully" }) : res.status(401).json({ message: "Wrong account or password" });
+});
+
+
 // ✅ Đọc điểm số từ CSV
 const readGradesFromCSV = (studentIDs) => {
     return new Promise((resolve, reject) => {
@@ -104,19 +119,7 @@ app.get('/get-grades', async (req, res) => {
     }
 });
 
-// ✅ Danh sách tài khoản giả lập
-const users = [
-    { studentID: "S0001", password: "123" },
-    { studentID: "admin", password: "123" },
-    { studentID: "S0009", password: "123" }
-];
 
-// ✅ API đăng nhập
-app.post("/login", (req, res) => {
-    const { studentID, password } = req.body;
-    const user = users.find(u => u.studentID === studentID && u.password === password);
-    user ? res.json({ message: "Log in successfully" }) : res.status(401).json({ message: "Wrong account or password" });
-});
 
 // ✅ API thêm bằng cấp vào Blockchain
 app.post('/add-certificate', async (req, res) => {

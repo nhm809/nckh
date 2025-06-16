@@ -18,6 +18,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 app = Flask(__name__)
 CORS(app)
 
+rf_model = None
+
 @lru_cache(maxsize=1)
 def load_courses():
     courses_df = pd.read_csv("../DataProcessor/coursesData.csv")
@@ -30,6 +32,11 @@ def load_courses():
         for _, row in courses_df.iterrows()
     }
 
+
+def get_course_data():
+    return load_courses()
+
+
 courses = load_courses()
 
 # Configuration
@@ -38,14 +45,23 @@ MIN_STUDENTS_FOR_MODEL = 2
 MAX_RECOMMENDATIONS = 3
 SHAP_THRESHOLD = 0.01
 
+
+def train_rf_classifier(X, clusters):
+    global rf_model
+    rf_model = RandomForestClassifier(n_estimators=50, random_state=42)
+    rf_model.fit(X, clusters)
+
+
 def predict_probabilities(model, X):
-    if model is None:
-        return np.array([[0.5, 0.5]])
-    clusters = model.predict(X)
-    probs = np.zeros((X.shape[0], model.n_clusters))
-    for i, cluster in enumerate(clusters):
-        probs[i, cluster] = 1
-    return probs
+    global rf_model
+
+    # Nếu chưa có model phân loại, huấn luyện dựa vào cụm của KMeans
+    if rf_model is None:
+        clusters = model.predict(X if isinstance(X, np.ndarray) else X.values)
+        train_rf_classifier(X if isinstance(X, np.ndarray) else X.values, clusters)
+
+    return rf_model.predict_proba(X if isinstance(X, np.ndarray) else X.values)
+
 
 def recommend_courses(grades_df, grades):
     # Phân loại môn học với ngưỡng rõ ràng
@@ -64,18 +80,19 @@ def recommend_courses(grades_df, grades):
     }
     
     if categorized['weak']:
-        return categorized['weak'][:2], "Cần tập trung cải thiện các môn yếu"
-    
+        return categorized['weak'][:2], "Focus on improving weak subjects"
+
     if categorized['average']:
-        return categorized['average'][:1], "Nên ôn tập các môn trung bình"
-    
+        return categorized['average'][:1], "It is recommended to review average subjects"
+
     if categorized['strong']:
         best_subject = max(grades.items(), key=lambda x: x[1])[0]
         advanced_courses = get_advanced_courses(best_subject)
         if advanced_courses:
-            return advanced_courses[:MAX_RECOMMENDATIONS], f"Dựa trên thành tích môn {best_subject}, gợi ý môn nâng cao"
+            return advanced_courses[:MAX_RECOMMENDATIONS], f"Based on the performance in {best_subject}, advanced courses are recommended"
+
     
-    return get_level_based_recommendations(grades), "Gợi ý môn phù hợp trình độ"
+    return get_level_based_recommendations(grades), "Recommend courses that match the student's level"
 
 def get_level_based_recommendations(grades):
     avg_score = np.mean(list(grades.values())) if grades else 0
@@ -99,105 +116,122 @@ def explain_recommendations(grades_df, recommendations, kmeans_model, grades):
     if len(grades_df) >= 2:  
         try:
             if kmeans_model is None:
-                print("Tạo model KMeans tạm thời...")
+                print("Creating a temporary KMeans model...")
                 temp_model = KMeans(n_clusters=min(2, len(grades_df)), random_state=42)
                 temp_model.fit(grades_df)
-                shap_explanation = explain_with_shap(grades_df, temp_model, 
-                                                   {'studentID': grades_df.index[0], 'grades': grades})
+                shap_explanation = explain_with_shap(
+                    grades_df,
+                    temp_model,
+                    {'studentID': grades_df.index[0], 'grades': grades}
+                )
             else:
-                shap_explanation = explain_with_shap(grades_df, kmeans_model,
-                                                   {'studentID': grades_df.index[0], 'grades': grades})
+                shap_explanation = explain_with_shap(
+                    grades_df,
+                    kmeans_model,
+                    {'studentID': grades_df.index[0], 'grades': grades}
+                )
         except Exception as e:
-            print(f"Lỗi SHAP: {str(e)}")
+            print(f"SHAP error: {str(e)}")
         
         try:
-            lime_explanation = explain_with_lime(grades_df, kmeans_model or temp_model,
-                                               {'studentID': grades_df.index[0], 'grades': grades})
+            lime_explanation = explain_with_lime(
+                grades_df,
+                kmeans_model or temp_model,
+                {'studentID': grades_df.index[0], 'grades': grades}
+            )
         except Exception as e:
-            print(f"Lỗi LIME: {str(e)}")
-    
+            print(f"LIME error: {str(e)}")
+
     return explanations, shap_explanation, lime_explanation
+
+
+
 def generate_explanations(recommendations, grades):
     explanations = []
     avg_score = np.mean(list(grades.values())) if grades else 0
-    
+
     for course in recommendations:
         if course in grades:
             score = grades[course]
             if score < 5:
-                explanations.append(f"{course} (điểm: {score}) cần cải thiện gấp (dưới 5 điểm)")
+                explanations.append(f"{course} (score: {score}) needs urgent improvement (below 5)")
             elif 5 <= score < 8:
-                explanations.append(f"{course} (điểm: {score}) cần ôn tập (dưới 8 điểm)")
-            else:  
+                explanations.append(f"{course} (score: {score}) should be reviewed (below 8)")
+            else:
                 advanced_courses = get_advanced_courses(course)
                 if advanced_courses:
                     explanations.append(
-                        f"{course} (điểm: {score}) đã xuất sắc! Gợi ý học tiếp: {', '.join(advanced_courses)}"
+                        f"{course} (score: {score}) is excellent! Recommended follow-up courses: {', '.join(advanced_courses)}"
                     )
                 else:
-                    explanations.append(f"{course} (điểm: {score}) đã đạt yêu cầu (từ 8 điểm trở lên)")
+                    explanations.append(f"{course} (score: {score}) meets the requirements (8 or above)")
         else:
             diff = courses[course]["difficulty"]
             cred = courses[course]["credits"]
-            diff_type = "dễ hơn" if diff < avg_score/10 else "khó hơn"
-            
-            diff_type = ("khá khó so với" if avg_score/10 - diff <= 0.2 else "dễ hơn") if diff <= avg_score/10 else "khó hơn"
-            
+            diff_type = "easier" if diff < avg_score / 10 else "harder"
+
+            diff_type = (
+                "somewhat harder than average" if avg_score / 10 - diff <= 0.2 else "easier"
+            ) if diff <= avg_score / 10 else "harder"
+
             explanations.append(
-                f"{course} phù hợp trình độ (độ khó: {diff:.2f}, tín chỉ: {cred}) - Đánh giá: {diff_type} mức trung bình"
+                f"{course} matches the student's level (difficulty: {diff:.2f}, credits: {cred}) - Assessment: {diff_type} than average"
             )
     return explanations
+
 
 # Hàm phụ trợ để lấy khóa học nâng cao 
 def get_advanced_courses(course):
     advanced_mapping = {
-        "Math": ["Toán nâng cao", "Giải tích"],
-        "Lý cơ bản": ["Lý nâng cao", "Vật lý lượng tử"],
+        "Math": ["Advanced Mathematics", "Calculus"],
+        "Basic Physics": ["Advanced Physics", "Quantum Mechanics"],
     }
     return advanced_mapping.get(course, [])
 
 
+
 def explain_with_shap(grades_df, model, student_data):
     try:
-        # Lọc features có phương sai và loại bỏ nhiễu
+        # Filter features with sufficient variance to remove noise
         variances = grades_df.var()
         valid_features = variances[variances > 0.01].index.tolist()
-        
+
         if not valid_features or len(grades_df) < 2:
             return []
-            
+
         X = grades_df[valid_features]
-        
-        # Sử dụng RandomForest thay vì GradientBoosting cho ổn định
+
+        # Use RandomForest instead of GradientBoosting for stability
         rf = RandomForestClassifier(n_estimators=50, random_state=42)
         clusters = model.predict(X)
         rf.fit(X, clusters)
-        
-        # Tính SHAP hiệu quả hơn
+
+        # Efficient SHAP calculation
         explainer = shap.TreeExplainer(rf)
         shap_values = explainer.shap_values(X)
-        
-        # Xử lý đa lớp
+
+        # Handle multi-class output
         if isinstance(shap_values, list):
             shap_values = np.mean(shap_values, axis=0)
-            
+
         student_idx = grades_df.index.get_loc(student_data['studentID'])
-        
+
         return [
             {
                 'feature': feature,
                 'score': student_data['grades'].get(feature, 'N/A'),
-                'impact': 'tích cực' if val > 0 else 'tiêu cực',
+                'impact': 'positive' if val > 0 else 'negative',
                 'value': float(val),
                 'abs_value': abs(val)
             }
             for i, feature in enumerate(valid_features)
             if (val := shap_values[student_idx, i]) and abs(val) > SHAP_THRESHOLD
-        ][:MAX_FEATURES_FOR_EXPLANATION]  # Giới hạn số lượng features
-        
+        ][:MAX_FEATURES_FOR_EXPLANATION]  # Limit number of features
+
     except Exception as e:
         print(f"SHAP error: {str(e)}")
         return []
+
 
 def explain_with_lime(grades_df, model, student_data):
     try:
@@ -228,6 +262,49 @@ def explain_with_lime(grades_df, model, student_data):
         print(f"LIME error: {str(e)}")
         return []
 
+
+##Chuẩn hóa đầu ra    
+def parse_shap_results(shap_explanation):
+    results = {}
+    for item in shap_explanation:
+        feature = item['feature']
+        results[feature] = {
+            "subject": feature,
+            "shap_value": round(item['value'], 3),
+            "impact": "High" if abs(item['value']) > 0.2 else "Low"
+        }
+    return results
+
+    
+def parse_lime_results(lime_explanation):
+    results = {}
+    for exp in lime_explanation:
+        try:
+            feature_str, weight_str = exp.strip("()").split(",")
+            feature = feature_str.split("<=")[0].strip().strip("'").strip()
+            weight = float(weight_str)
+            results[feature] = {
+                "subject": feature,
+                "lime_weight": round(weight, 3)
+            }
+        except:
+            continue
+    return results
+
+
+def merge_shap_lime(shap_dict, lime_dict):
+    combined = {}
+    for subj in set(list(shap_dict.keys()) + list(lime_dict.keys())):
+        combined[subj] = {
+            "subject": subj,
+            "shap_value": shap_dict.get(subj, {}).get("shap_value", 0.0),
+            "lime_weight": lime_dict.get(subj, {}).get("lime_weight", 0.0),
+            "impact": shap_dict.get(subj, {}).get("impact", "Unknown")
+        }
+    return list(combined.values())
+
+    
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -242,11 +319,25 @@ def analyze():
         student_ids = []
         
         for student in students:
-            if not student.get('studentID') or not student.get('grades'):
+            student_id = student.get('studentID')
+            grades = student.get('grades')
+
+            if not student_id or not grades:
                 continue
-                
-            grades_data.append(list(student['grades'].values()))
-            student_ids.append(student['studentID'])
+
+            score_table = [{
+                "subject": subject,
+                "score": float(score),
+                "evaluation": (
+                    "Bad" if score < 5 else
+                    "Average" if score < 8 else
+                    "Good"
+                )
+            } for subject, score in grades.items()]
+
+            grades_data.append(list(grades.values()))
+            student_ids.append(student_id)
+
         
         if not grades_data:
             return jsonify({"error": "No valid grade data"}), 400
@@ -263,6 +354,7 @@ def analyze():
                 n_clusters = min(3, len(students))
                 kmeans_model = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
                 kmeans_model.fit(grades_df)
+                train_rf_classifier(grades_df.values, kmeans_model.labels_)
                 
             except Exception as e:
                 print(f"KMeans failed: {str(e)}")
@@ -289,18 +381,31 @@ def analyze():
                     return [convert_types(v) for v in obj]
                 return obj
 
+            # result = {
+            #     'studentID': str(student_id),
+            #     'recommendedCourses': [str(course) for course in recommendations],
+            #     'explanations': explanations,
+            #     'shapExplanation': [{
+            #         'feature': str(item['feature']),
+            #         'score': str(item['score']),
+            #         'impact': str(item['impact']),
+            #         'value': float(item['value'])
+            #     } for item in shap_explanation],
+            #     'limeExplanation': [str(exp) for exp in lime_explanation]
+            # }
+            
+            shap_dict = parse_shap_results(shap_explanation)
+            lime_dict = parse_lime_results(lime_explanation)
+            shap_lime_summary = merge_shap_lime(shap_dict, lime_dict)
+
             result = {
-                'studentID': str(student_id),
-                'recommendedCourses': [str(course) for course in recommendations],
-                'explanations': explanations,
-                'shapExplanation': [{
-                    'feature': str(item['feature']),
-                    'score': str(item['score']),
-                    'impact': str(item['impact']),
-                    'value': float(item['value'])
-                } for item in shap_explanation],
-                'limeExplanation': [str(exp) for exp in lime_explanation]
+                "studentID": str(student_id),
+                "scores": score_table,
+                "recommendedCourses": [str(course) for course in recommendations],
+                "explanations": explanations,
+                "shap_lime_summary": shap_lime_summary
             }
+
             
             results.append(convert_types(result))
 
@@ -319,6 +424,6 @@ def analyze():
         }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    app.run(port=5000)
+    app.run(debug=True, port=5000)
+
 
