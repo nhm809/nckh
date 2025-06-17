@@ -212,10 +212,13 @@ app.post('/add-certificate', async (req, res) => {
             graduationGradeBytes32
         ).send({ from: accounts[0], gas: estimatedGas });
 
+        // Get the certificate hash after adding
+        const certificateHash = await contract.methods.studentToHash(studentIDBytes32).call();
+
         console.log("Transaction successful:", tx.transactionHash);
         res.status(200).json({ 
             message: "Degree added successfully", 
-            txHash: tx.transactionHash 
+            certificateHash: certificateHash
         });
     } catch (error) {
         console.error("Blockchain error:", error);

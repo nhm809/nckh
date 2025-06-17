@@ -306,7 +306,7 @@ async function addCertificate() {
         const data = await response.json();
 
         if (response.ok) {
-            resultElement.innerText = data.message || "Certificate added successfully!";
+            resultElement.innerText = `${data.message}\nCertificate Hash: ${data.certificateHash}`;
             resultElement.style.color = "green";
         } else {
             resultElement.innerText = data.message || "Failed to add certificate!";
