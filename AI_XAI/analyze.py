@@ -12,6 +12,7 @@ import traceback
 import sys
 import orjson
 from functools import lru_cache
+from sklearn.linear_model import LogisticRegression
 import re
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -44,7 +45,7 @@ courses = load_courses()
 MAX_FEATURES_FOR_EXPLANATION = 5
 MIN_STUDENTS_FOR_MODEL = 2
 MAX_RECOMMENDATIONS = 3
-SHAP_THRESHOLD = 0
+SHAP_THRESHOLD = -0.5
 
 
 def train_rf_classifier(X, clusters):
@@ -118,7 +119,7 @@ def explain_recommendations(grades_df, recommendations, kmeans_model, grades):
         try:
             if kmeans_model is None:
                 print("Creating a temporary KMeans model...")
-                temp_model = KMeans(n_clusters=min(2, len(grades_df)), random_state=42)
+                temp_model = KMeans(n_clusters = min(3, max(2, len(grades_df)//3)))
                 temp_model.fit(grades_df)
                 shap_explanation = explain_with_shap(
                     grades_df,
@@ -211,7 +212,7 @@ def explain_with_shap(grades_df, model, student_data):
         rf.fit(X, clusters)
 
         # Efficient SHAP calculation
-        explainer = shap.TreeExplainer(rf)
+        explainer = shap.TreeExplainer(model, feature_perturbation='interventional')
         shap_values = explainer.shap_values(X)
 
         # Handle multi-class output
@@ -220,17 +221,32 @@ def explain_with_shap(grades_df, model, student_data):
 
         student_idx = grades_df.index.get_loc(student_data['studentID'])
 
-        return [
-            {
+        # return [
+        #     {
+        #         'feature': feature,
+        #         'score': student_data['grades'].get(feature, 'N/A'),
+        #         'impact': 'positive' if val > 0 else 'negative',
+        #         'value': float(val),
+        #         'abs_value': abs(val)
+        #     }
+        #     for i, feature in enumerate(valid_features)
+        #     if (val := shap_values[student_idx, i]) and abs(val) > SHAP_THRESHOLD
+        # ][:MAX_FEATURES_FOR_EXPLANATION]  # Limit number of features
+
+        results = []
+        for i, feature in enumerate(valid_features):
+            val = shap_values[student_idx, i]
+            results.append({
                 'feature': feature,
                 'score': student_data['grades'].get(feature, 'N/A'),
                 'impact': 'positive' if val > 0 else 'negative',
                 'value': float(val),
                 'abs_value': abs(val)
-            }
-            for i, feature in enumerate(valid_features)
-            if (val := shap_values[student_idx, i]) and abs(val) > SHAP_THRESHOLD
-        ][:MAX_FEATURES_FOR_EXPLANATION]  # Limit number of features
+            })
+
+        # Sau đó giới hạn số lượng kết quả nếu cần
+        results = sorted(results, key=lambda x: -x['abs_value'])[:MAX_FEATURES_FOR_EXPLANATION]
+        return results
 
     except Exception as e:
         print(f"SHAP error: {str(e)}")
@@ -273,16 +289,19 @@ def parse_shap_results(shap_explanation):
     for item in shap_explanation:
         feature = item['feature']
         shap_val = item['value']
+        impact_level = (
+            "High" if abs(shap_val) > 0.2 else
+            "Low" if abs(shap_val) > 0 else
+            "None"
+        )
+
         results[feature] = {
             "subject": feature,
             "shap_value": round(shap_val, 3),
-            "impact": (
-                "High" if abs(shap_val) > 0.2 else
-                "Low" if shap_val != 0 else
-                "None"
-            )
+            "impact": impact_level
         }
     return results
+
 
     
 def parse_lime_results(lime_explanation):
