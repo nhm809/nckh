@@ -66,8 +66,8 @@ async function fetchStudentGrades(studentIDs) {
 
         if (result.students) {
             document.querySelectorAll(".grades").forEach(textarea => {
-                // textarea.value = JSON.stringify({ students: result.students }, null, 2);
-                textarea.value = JSON.stringify(result.students, null, 2);
+                textarea.value = JSON.stringify({ students: result.students }, null, 2);
+                // textarea.value = JSON.stringify(result.students, null, 2);
             });
         } else {
             throw new Error("Invalid data format.");
@@ -87,29 +87,32 @@ async function recommendCourses() {
         return;
     }
 
+    let parsedGrades;
     try {
-        let parsedGrades;
-        try {
-            parsedGrades = JSON.parse(gradesTextarea);
-        } catch (parseError) {
-            alert("Invalid JSON format.\nCorrect example:\n{\n  \"students\": [{ \"studentID\": \"S0001\", \"grades\": { \"Programming\": 6.0 } }]\n}");
-            console.error("JSON parse error:", parseError);
-            return;
-        }
+        parsedGrades = JSON.parse(gradesTextarea);
+    } catch (parseError) {
+        alert("Invalid JSON format.\nCorrect format:\n{\n  \"students\": [ ... ]\n}");
+        console.error("JSON parse error:", parseError);
+        return;
+    }
 
-        if (!Array.isArray(parsedGrades)) {
-            throw new Error("Invalid grade data format. Please provide a JSON array.");
-        }
+    if (!parsedGrades.students || !Array.isArray(parsedGrades.students)) {
+        alert("Invalid format: 'students' must be an array inside the object.");
+        return;
+    }
 
-        // Show loading and clear previous results
-        recommendationsContainer.innerHTML = '<div class="loading">Processing...</div>';
-        document.querySelectorAll(".explanations, .shapExplanation, .limeExplanation")
-            .forEach(el => el.innerHTML = '');
+    const studentsData = parsedGrades.students;
 
+    // Show loading
+    recommendationsContainer.innerHTML = '<div class="loading">Processing...</div>';
+    document.querySelectorAll(".explanations, .shapExplanation, .limeExplanation")
+        .forEach(el => el.innerHTML = '');
+
+    try {
         const response = await fetch('http://localhost:5000/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ students: parsedGrades }),
+            body: JSON.stringify({ students: studentsData }) // ✅ Không gửi thêm `parsedGrades`
         });
 
         if (!response.ok) {
@@ -118,65 +121,78 @@ async function recommendCourses() {
         }
 
         const result = await response.json();
+        recommendationsContainer.innerHTML = ''; // Clear loading
 
-        // Clear loading message before rendering results
-        recommendationsContainer.innerHTML = '';
-
-        if (result.students && result.students.length > 0) {
+        if (result.students?.length > 0) {
             result.students.forEach(student => {
                 const studentContainer = document.createElement('div');
                 studentContainer.className = 'student-result';
+
                 studentContainer.innerHTML = `
                     <div class="student-header">
                         <h3>Results for Student: ${student.studentID}</h3>
                     </div>
+
+                    <div class="score-section">
+                        <h4>Scores:</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Score</th>
+                                    <th>Evaluation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${student.scores.map(item => `
+                                    <tr>
+                                        <td>${item.subject}</td>
+                                        <td>${item.score}</td>
+                                        <td>${item.evaluation}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
                     <div class="recommendation-section">
                         <h4>Recommended Courses:</h4>
                         <ul>
                             ${student.recommendedCourses.map(course => `<li>${course}</li>`).join('')}
                         </ul>
                     </div>
+
                     <div class="explanation-section">
-                        <h4>Explanation:</h4>
+                        <h4>Explanations:</h4>
                         <ul>
                             ${student.explanations.map(exp => `<li>${exp}</li>`).join('')}
                         </ul>
                     </div>
-                    ${student.shapExplanation && student.shapExplanation.length > 0 ? `
-                    <div class="shap-section">
-                        <h4>Feature Impact Analysis (SHAP):</h4>
+
+                    ${student.shap_lime_summary?.length > 0 ? `
+                    <div class="shaplime-section">
+                        <h4>SHAP & LIME Summary:</h4>
                         <table>
                             <thead>
                                 <tr>
                                     <th>Subject</th>
-                                    <th>Score</th>
+                                    <th>SHAP Value</th>
+                                    <th>LIME Weight</th>
                                     <th>Impact</th>
-                                    <th>Value</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${student.shapExplanation.map(item => `
-                                <tr>
-                                    <td>${item.feature}</td>
-                                    <td>${item.score}</td>
-                                    <td class="impact-${item.impact === 'positive' ? 'positive' : 'negative'}">
-                                        ${item.impact}
-                                    </td>
-                                    <td>${item.value.toFixed(4)}</td>
-                                </tr>
+                                ${student.shap_lime_summary.map(item => `
+                                    <tr>
+                                        <td>${item.subject}</td>
+                                        <td>${item.shap_value.toFixed(4)}</td>
+                                        <td>${item.lime_weight.toFixed(4)}</td>
+                                        <td class="impact-${item.impact.toLowerCase()}">${item.impact}</td>
+                                    </tr>
                                 `).join('')}
                             </tbody>
                         </table>
-                    </div>
-                    ` : '<p class="no-explanation">No SHAP explanation available</p>'}
-                    ${student.limeExplanation && student.limeExplanation.length > 0 ? `
-                    <div class="lime-section">
-                        <h4>Local Explanation (LIME):</h4>
-                        <ul>
-                            ${student.limeExplanation.map(exp => `<li>${exp}</li>`).join('')}
-                        </ul>
-                    </div>
-                    ` : '<p class="no-explanation">No LIME explanation available</p>'}
+                    </div>` : `<p class="no-explanation">No SHAP/LIME explanation available</p>`}
                 `;
 
                 recommendationsContainer.appendChild(studentContainer);
@@ -185,11 +201,12 @@ async function recommendCourses() {
             throw new Error("No student data returned.");
         }
     } catch (error) {
-        recommendationsContainer.innerHTML = 
+        recommendationsContainer.innerHTML =
             `<div class="error-message">Error: ${error.message}</div>`;
         console.error("Error details:", error);
     }
 }
+
 
 
 

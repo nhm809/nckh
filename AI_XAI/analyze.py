@@ -12,6 +12,7 @@ import traceback
 import sys
 import orjson
 from functools import lru_cache
+import re
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -43,7 +44,7 @@ courses = load_courses()
 MAX_FEATURES_FOR_EXPLANATION = 5
 MIN_STUDENTS_FOR_MODEL = 2
 MAX_RECOMMENDATIONS = 3
-SHAP_THRESHOLD = 0.01
+SHAP_THRESHOLD = 0
 
 
 def train_rf_classifier(X, clusters):
@@ -165,11 +166,9 @@ def generate_explanations(recommendations, grades):
                     )
                 else:
                     explanations.append(f"{course} (score: {score}) meets the requirements (8 or above)")
-        else:
+        elif course in courses:  # ✅ CHỈ TRUY CẬP nếu course có trong từ điển
             diff = courses[course]["difficulty"]
             cred = courses[course]["credits"]
-            diff_type = "easier" if diff < avg_score / 10 else "harder"
-
             diff_type = (
                 "somewhat harder than average" if avg_score / 10 - diff <= 0.2 else "easier"
             ) if diff <= avg_score / 10 else "harder"
@@ -177,6 +176,11 @@ def generate_explanations(recommendations, grades):
             explanations.append(
                 f"{course} matches the student's level (difficulty: {diff:.2f}, credits: {cred}) - Assessment: {diff_type} than average"
             )
+        else:
+            explanations.append(
+                f"{course} is a recommended course, but detailed information is not available in the dataset."
+            )
+
     return explanations
 
 
@@ -194,7 +198,7 @@ def explain_with_shap(grades_df, model, student_data):
     try:
         # Filter features with sufficient variance to remove noise
         variances = grades_df.var()
-        valid_features = variances[variances > 0.01].index.tolist()
+        valid_features = variances[variances > 0].index.tolist()
 
         if not valid_features or len(grades_df) < 2:
             return []
@@ -268,10 +272,15 @@ def parse_shap_results(shap_explanation):
     results = {}
     for item in shap_explanation:
         feature = item['feature']
+        shap_val = item['value']
         results[feature] = {
             "subject": feature,
-            "shap_value": round(item['value'], 3),
-            "impact": "High" if abs(item['value']) > 0.2 else "Low"
+            "shap_value": round(shap_val, 3),
+            "impact": (
+                "High" if abs(shap_val) > 0.2 else
+                "Low" if shap_val != 0 else
+                "None"
+            )
         }
     return results
 
@@ -281,13 +290,16 @@ def parse_lime_results(lime_explanation):
     for exp in lime_explanation:
         try:
             feature_str, weight_str = exp.strip("()").split(",")
-            feature = feature_str.split("<=")[0].strip().strip("'").strip()
+            # Dùng regex để bắt tên subject
+            match = re.search(r"(Math|Reading|Writing)", feature_str)
+            feature = match.group(0) if match else feature_str.strip()
             weight = float(weight_str)
             results[feature] = {
                 "subject": feature,
                 "lime_weight": round(weight, 3)
             }
-        except:
+        except Exception as e:
+            print(f"LIME parse error: {e}")
             continue
     return results
 
@@ -325,20 +337,9 @@ def analyze():
             if not student_id or not grades:
                 continue
 
-            score_table = [{
-                "subject": subject,
-                "score": float(score),
-                "evaluation": (
-                    "Bad" if score < 5 else
-                    "Average" if score < 8 else
-                    "Good"
-                )
-            } for subject, score in grades.items()]
-
             grades_data.append(list(grades.values()))
             student_ids.append(student_id)
 
-        
         if not grades_data:
             return jsonify({"error": "No valid grade data"}), 400
             
@@ -355,7 +356,6 @@ def analyze():
                 kmeans_model = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
                 kmeans_model.fit(grades_df)
                 train_rf_classifier(grades_df.values, kmeans_model.labels_)
-                
             except Exception as e:
                 print(f"KMeans failed: {str(e)}")
                 use_ml = False
@@ -366,6 +366,17 @@ def analyze():
 
             if not student_id or not grades:
                 continue
+
+            # ✅ Di chuyển score_table vào đây để mỗi sinh viên có bảng điểm riêng
+            score_table = [{
+                "subject": subject,
+                "score": float(score),
+                "evaluation": (
+                    "Bad" if score < 5 else
+                    "Average" if score < 8 else
+                    "Good"
+                )
+            } for subject, score in grades.items()]
 
             recommendations, _ = recommend_courses(grades_df, grades)
             explanations, shap_explanation, lime_explanation = explain_recommendations(
@@ -380,19 +391,6 @@ def analyze():
                 elif isinstance(obj, list):
                     return [convert_types(v) for v in obj]
                 return obj
-
-            # result = {
-            #     'studentID': str(student_id),
-            #     'recommendedCourses': [str(course) for course in recommendations],
-            #     'explanations': explanations,
-            #     'shapExplanation': [{
-            #         'feature': str(item['feature']),
-            #         'score': str(item['score']),
-            #         'impact': str(item['impact']),
-            #         'value': float(item['value'])
-            #     } for item in shap_explanation],
-            #     'limeExplanation': [str(exp) for exp in lime_explanation]
-            # }
             
             shap_dict = parse_shap_results(shap_explanation)
             lime_dict = parse_lime_results(lime_explanation)
@@ -406,7 +404,6 @@ def analyze():
                 "shap_lime_summary": shap_lime_summary
             }
 
-            
             results.append(convert_types(result))
 
         return app.response_class(
@@ -422,6 +419,7 @@ def analyze():
             "details": str(e),
             "trace": traceback.format_exc()
         }), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
