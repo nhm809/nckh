@@ -66,7 +66,8 @@ async function fetchStudentGrades(studentIDs) {
 
         if (result.students) {
             document.querySelectorAll(".grades").forEach(textarea => {
-                textarea.value = JSON.stringify({ students: result.students }, null, 2);
+                // textarea.value = JSON.stringify({ students: result.students }, null, 2);
+                textarea.value = JSON.stringify(result.students, null, 2);
             });
         } else {
             throw new Error("Invalid data format.");
